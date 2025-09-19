@@ -29,7 +29,8 @@ const StudentProfileForm = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Profile data:", { ...formData, skills });
+    console.log("Form submitted! Profile data:", { ...formData, skills });
+    alert("Profile created successfully! Check console for data.");
     // Here you would typically send the data to your backend
   };
 
