@@ -2,18 +2,34 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, User, FileText, Award } from "lucide-react";
+import { Plus, X, User, FileText, Award, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-const StudentProfileForm = () => {
+interface StudentProfileFormProps {
+  onProfileCreated?: (profile: any) => void;
+}
+
+const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) => {
   const [skills, setSkills] = useState<string[]>([]);
+  const [interests, setInterests] = useState<string[]>([]);
   const [currentSkill, setCurrentSkill] = useState("");
+  const [currentInterest, setCurrentInterest] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    description: "",
-    experience: "",
+    academicLevel: "",
+    fieldOfStudy: "",
+    university: "",
+    experienceLevel: "",
+    preferredTeamSize: "",
+    timeCommitment: "",
+    preferredProjectDuration: "",
   });
 
   const addSkill = () => {
@@ -27,11 +43,67 @@ const StudentProfileForm = () => {
     setSkills(skills.filter(skill => skill !== skillToRemove));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const addInterest = () => {
+    if (currentInterest.trim() && !interests.includes(currentInterest.trim())) {
+      setInterests([...interests, currentInterest.trim()]);
+      setCurrentInterest("");
+    }
+  };
+
+  const removeInterest = (interestToRemove: string) => {
+    setInterests(interests.filter(interest => interest !== interestToRemove));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted! Profile data:", { ...formData, skills });
-    alert("Profile created successfully! Check console for data.");
-    // Here you would typically send the data to your backend
+    setLoading(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("You must be logged in to create a profile");
+      }
+
+      const profileData = {
+        user_id: user.id,
+        name: formData.name,
+        email: formData.email,
+        academic_level: formData.academicLevel,
+        field_of_study: formData.fieldOfStudy,
+        university: formData.university,
+        skills: skills,
+        interests: interests,
+        experience_level: formData.experienceLevel,
+        preferred_team_size: formData.preferredTeamSize,
+        time_commitment: formData.timeCommitment,
+        preferred_project_duration: formData.preferredProjectDuration,
+      };
+
+      const { data, error } = await supabase
+        .from('student_profiles')
+        .insert([profileData])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile created successfully!",
+        description: "Your profile has been saved. Now generating personalized project recommendations...",
+      });
+
+      onProfileCreated?.(data);
+    } catch (error: any) {
+      console.error('Error creating profile:', error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -80,32 +152,101 @@ const StudentProfileForm = () => {
                   </div>
                 </div>
 
-                {/* Description */}
+                {/* Academic Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Academic Level</label>
+                    <Select value={formData.academicLevel} onValueChange={(value) => setFormData({ ...formData, academicLevel: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="undergraduate">Undergraduate</SelectItem>
+                        <SelectItem value="graduate">Graduate</SelectItem>
+                        <SelectItem value="masters">Master's</SelectItem>
+                        <SelectItem value="phd">PhD</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Field of Study</label>
+                    <Input
+                      value={formData.fieldOfStudy}
+                      onChange={(e) => setFormData({ ...formData, fieldOfStudy: e.target.value })}
+                      placeholder="e.g., Computer Science"
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    About You
-                  </label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Tell us about your academic background, interests, and goals..."
-                    rows={4}
+                  <label className="block text-sm font-medium mb-2">University</label>
+                  <Input
+                    value={formData.university}
+                    onChange={(e) => setFormData({ ...formData, university: e.target.value })}
+                    placeholder="Enter your university name"
+                    required
                   />
                 </div>
 
-                {/* Experience */}
-                <div>
-                  <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                    <Award className="w-4 h-4" />
-                    Previous Experience
-                  </label>
-                  <Textarea
-                    value={formData.experience}
-                    onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                    placeholder="Describe your previous projects, coursework, or relevant experience..."
-                    rows={3}
-                  />
+                {/* Project Preferences */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Experience Level</label>
+                    <Select value={formData.experienceLevel} onValueChange={(value) => setFormData({ ...formData, experienceLevel: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select experience" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="beginner">Beginner</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="advanced">Advanced</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Preferred Team Size</label>
+                    <Select value={formData.preferredTeamSize} onValueChange={(value) => setFormData({ ...formData, preferredTeamSize: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select team size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="solo">Solo (1 person)</SelectItem>
+                        <SelectItem value="small">Small (2-3 people)</SelectItem>
+                        <SelectItem value="medium">Medium (4-5 people)</SelectItem>
+                        <SelectItem value="large">Large (6+ people)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Time Commitment</label>
+                    <Select value={formData.timeCommitment} onValueChange={(value) => setFormData({ ...formData, timeCommitment: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select commitment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="part-time">Part-time (5-10 hrs/week)</SelectItem>
+                        <SelectItem value="moderate">Moderate (10-20 hrs/week)</SelectItem>
+                        <SelectItem value="full-time">Full-time (20+ hrs/week)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Project Duration</label>
+                    <Select value={formData.preferredProjectDuration} onValueChange={(value) => setFormData({ ...formData, preferredProjectDuration: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="short">Short (4-8 weeks)</SelectItem>
+                        <SelectItem value="medium">Medium (8-16 weeks)</SelectItem>
+                        <SelectItem value="long">Long (16+ weeks)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Skills */}
@@ -149,13 +290,58 @@ const StudentProfileForm = () => {
                   </div>
                 </div>
 
+                {/* Interests */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Interests & Project Types</label>
+                  <div className="flex gap-2 mb-3">
+                    <Input
+                      value={currentInterest}
+                      onChange={(e) => setCurrentInterest(e.target.value)}
+                      placeholder="Add an interest (e.g., AI, Web Development, IoT)"
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addInterest())}
+                    />
+                    <Button type="button" onClick={addInterest} variant="outline" size="icon">
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  {/* Interests Display */}
+                  <div className="flex flex-wrap gap-2 min-h-[2rem]">
+                    {interests.map((interest, index) => (
+                      <Badge 
+                        key={index} 
+                        variant="outline" 
+                        className="flex items-center gap-1 px-3 py-1"
+                      >
+                        {interest}
+                        <button
+                          type="button"
+                          onClick={() => removeInterest(interest)}
+                          className="ml-1 hover:text-destructive transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                    {interests.length === 0 && (
+                      <p className="text-muted-foreground text-sm italic">
+                        No interests added yet. Start typing to add your first interest.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                 {/* Submit */}
                 <div className="flex gap-4">
-                  <Button type="submit" variant="gradient" className="flex-1">
-                    Create Profile
-                  </Button>
-                  <Button type="button" variant="outline">
-                    Save Draft
+                  <Button type="submit" variant="gradient" className="flex-1" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating Profile...
+                      </>
+                    ) : (
+                      "Create Profile"
+                    )}
                   </Button>
                 </div>
               </form>

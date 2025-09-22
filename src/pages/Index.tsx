@@ -1,17 +1,152 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { User, Session } from "@supabase/supabase-js";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import StudentProfileForm from "@/components/StudentProfileForm";
 import ProjectRecommendations from "@/components/ProjectRecommendations";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 const Index = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [studentProfile, setStudentProfile] = useState<any>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+
+        // Fetch student profile if user is logged in
+        if (session?.user) {
+          setTimeout(() => {
+            fetchStudentProfile(session.user.id);
+          }, 0);
+        } else {
+          setStudentProfile(null);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+
+      if (session?.user) {
+        fetchStudentProfile(session.user.id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchStudentProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('student_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching student profile:', error);
+        return;
+      }
+
+      setStudentProfile(data);
+    } catch (error) {
+      console.error('Error fetching student profile:', error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const handleProfileCreated = (profile: any) => {
+    setStudentProfile(profile);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <main className="pt-16">
+          <HeroSection />
+          <div className="container mx-auto px-4 py-16 text-center">
+            <div className="max-w-2xl mx-auto space-y-6">
+              <h2 className="text-3xl font-bold">Ready to Find Your Perfect Project?</h2>
+              <p className="text-muted-foreground text-lg">
+                Sign up or sign in to create your student profile and get AI-powered project recommendations tailored to your skills and interests.
+              </p>
+              <Button 
+                onClick={() => navigate('/auth')}
+                size="lg"
+                variant="gradient"
+                className="text-lg px-8 py-3"
+              >
+                Get Started
+              </Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
-      <Header />
-      <main className="pt-16">
-        <HeroSection />
-        <StudentProfileForm />
-        <ProjectRecommendations />
-      </main>
+      <Header user={user} onSignOut={handleSignOut} />
+      
+      {!studentProfile ? (
+        <main className="pt-16">
+          <div className="container mx-auto px-4 py-16 text-center">
+            <div className="max-w-2xl mx-auto space-y-6 mb-16">
+              <h2 className="text-3xl font-bold">Welcome, {user.user_metadata?.full_name || user.email}!</h2>
+              <p className="text-muted-foreground text-lg">
+                Let's create your student profile to get personalized project recommendations.
+              </p>
+            </div>
+          </div>
+          <StudentProfileForm onProfileCreated={handleProfileCreated} />
+        </main>
+      ) : (
+        <main className="pt-16">
+          <div className="container mx-auto px-4 py-8 text-center">
+            <div className="max-w-2xl mx-auto space-y-4">
+              <h2 className="text-2xl font-bold">Welcome back, {studentProfile.name}!</h2>
+              <p className="text-muted-foreground">
+                Here are your personalized project recommendations based on your profile.
+              </p>
+            </div>
+          </div>
+          <ProjectRecommendations userId={user.id} studentProfile={studentProfile} />
+        </main>
+      )}
     </div>
   );
 };

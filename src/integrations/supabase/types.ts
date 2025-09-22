@@ -14,7 +14,191 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          academic_level: string | null
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          field_of_study: string | null
+          full_name: string | null
+          id: string
+          university: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          academic_level?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          field_of_study?: string | null
+          full_name?: string | null
+          id?: string
+          university?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          academic_level?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          field_of_study?: string | null
+          full_name?: string | null
+          id?: string
+          university?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      project_recommendations: {
+        Row: {
+          created_at: string
+          id: string
+          match_score: number
+          project_id: string
+          reasoning: string | null
+          skill_match_details: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_score: number
+          project_id: string
+          reasoning?: string | null
+          skill_match_details?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_score?: number
+          project_id?: string
+          reasoning?: string | null
+          skill_match_details?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_recommendations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          difficulty_level: string
+          estimated_duration: string
+          id: string
+          industry_relevance: string | null
+          learning_outcomes: string[]
+          mentorship_available: boolean | null
+          preferred_skills: string[]
+          required_skills: string[]
+          team_size_max: number
+          team_size_min: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          difficulty_level: string
+          estimated_duration: string
+          id?: string
+          industry_relevance?: string | null
+          learning_outcomes?: string[]
+          mentorship_available?: boolean | null
+          preferred_skills?: string[]
+          required_skills?: string[]
+          team_size_max?: number
+          team_size_min?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          difficulty_level?: string
+          estimated_duration?: string
+          id?: string
+          industry_relevance?: string | null
+          learning_outcomes?: string[]
+          mentorship_available?: boolean | null
+          preferred_skills?: string[]
+          required_skills?: string[]
+          team_size_max?: number
+          team_size_min?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      student_profiles: {
+        Row: {
+          academic_level: string
+          created_at: string
+          email: string
+          experience_level: string
+          field_of_study: string
+          id: string
+          interests: string[]
+          name: string
+          preferred_project_duration: string
+          preferred_team_size: string
+          skills: string[]
+          time_commitment: string
+          university: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          academic_level: string
+          created_at?: string
+          email: string
+          experience_level: string
+          field_of_study: string
+          id?: string
+          interests?: string[]
+          name: string
+          preferred_project_duration: string
+          preferred_team_size: string
+          skills?: string[]
+          time_commitment: string
+          university: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          academic_level?: string
+          created_at?: string
+          email?: string
+          experience_level?: string
+          field_of_study?: string
+          id?: string
+          interests?: string[]
+          name?: string
+          preferred_project_duration?: string
+          preferred_team_size?: string
+          skills?: string[]
+          time_commitment?: string
+          university?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,8 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Brain, Menu, X } from "lucide-react";
+import { Brain, Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
-const Header = () => {
+interface HeaderProps {
+  user?: SupabaseUser;
+  onSignOut?: () => void;
+}
+
+const Header = ({ user, onSignOut }: HeaderProps = {}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -37,12 +43,29 @@ const Header = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="sm">
-              Sign In
-            </Button>
-            <Button variant="gradient" size="sm">
-              Get Started
-            </Button>
+            {user ? (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <User className="w-4 h-4" />
+                  <span className="text-muted-foreground">
+                    {user.user_metadata?.full_name || user.email}
+                  </span>
+                </div>
+                <Button variant="ghost" size="sm" onClick={onSignOut}>
+                  <LogOut className="w-4 h-4 mr-1" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm">
+                  Sign In
+                </Button>
+                <Button variant="gradient" size="sm">
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -91,12 +114,27 @@ const Header = () => {
                 About
               </a>
               <div className="flex flex-col gap-2 px-4 pt-4 border-t border-border">
-                <Button variant="ghost" size="sm" className="justify-start">
-                  Sign In
-                </Button>
-                <Button variant="gradient" size="sm">
-                  Get Started
-                </Button>
+                {user ? (
+                  <>
+                    <div className="flex items-center gap-2 px-2 py-1 text-sm text-muted-foreground">
+                      <User className="w-4 h-4" />
+                      <span>{user.user_metadata?.full_name || user.email}</span>
+                    </div>
+                    <Button variant="ghost" size="sm" className="justify-start" onClick={onSignOut}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" size="sm" className="justify-start">
+                      Sign In
+                    </Button>
+                    <Button variant="gradient" size="sm">
+                      Get Started
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </div>
