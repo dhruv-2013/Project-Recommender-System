@@ -48,10 +48,10 @@ const Auth = () => {
 
       toast({
         title: "Account created successfully!",
-        description: "You have been signed in and can now create your student profile.",
+        description: "Please select your role to continue.",
       });
 
-      navigate("/");
+      navigate("/role-selection");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -75,12 +75,26 @@ const Auth = () => {
 
       if (error) throw error;
 
+      // Check if user has a role assigned
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
       toast({
         title: "Welcome back!",
         description: "You have been signed in successfully.",
       });
 
-      navigate("/");
+      if (profile?.role === 'admin') {
+        navigate("/admin");
+      } else if (profile?.role === 'student') {
+        navigate("/");
+      } else {
+        navigate("/role-selection");
+      }
     } catch (error: any) {
       toast({
         title: "Error",

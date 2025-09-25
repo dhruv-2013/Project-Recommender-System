@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Teams from "./pages/Teams";
 import Projects from "./pages/Projects";
+import RoleSelection from "./pages/RoleSelection";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/role-selection" element={<RoleSelection />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/teams" element={<Teams />} />
           <Route path="/projects" element={<Projects />} />

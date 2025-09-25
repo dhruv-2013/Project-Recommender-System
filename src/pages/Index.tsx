@@ -24,10 +24,10 @@ const Index = () => {
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Fetch student profile if user is logged in
+        // Check user role and redirect if needed
         if (session?.user) {
           setTimeout(() => {
-            fetchStudentProfile(session.user.id);
+            checkUserRoleAndProfile(session.user.id);
           }, 0);
         } else {
           setStudentProfile(null);
@@ -42,16 +42,34 @@ const Index = () => {
       setLoading(false);
 
       if (session?.user) {
-        fetchStudentProfile(session.user.id);
+        checkUserRoleAndProfile(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
-  const fetchStudentProfile = async (userId: string) => {
+  const checkUserRoleAndProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      // Check user role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!profile || !profile.role) {
+        navigate('/role-selection');
+        return;
+      }
+
+      if (profile.role === 'admin') {
+        navigate('/admin');
+        return;
+      }
+
+      // Fetch student profile for students
+      const { data: studentProfile, error } = await supabase
         .from('student_profiles')
         .select('*')
         .eq('user_id', userId)
@@ -62,9 +80,9 @@ const Index = () => {
         return;
       }
 
-      setStudentProfile(data);
+      setStudentProfile(studentProfile);
     } catch (error) {
-      console.error('Error fetching student profile:', error);
+      console.error('Error checking user role and profile:', error);
     }
   };
 
