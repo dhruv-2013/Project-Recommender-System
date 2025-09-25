@@ -1,15 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Brain, Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface HeaderProps {
   user?: SupabaseUser;
+  profile?: any;
   onSignOut?: () => void;
 }
 
-const Header = ({ user, onSignOut }: HeaderProps = {}) => {
+const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <header className="fixed top-0 w-full bg-background/95 backdrop-blur-sm border-b border-border z-50">
@@ -45,10 +48,21 @@ const Header = ({ user, onSignOut }: HeaderProps = {}) => {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-3">
+                <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}>
+                  Projects
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/teams')}>
+                  Teams
+                </Button>
+                {profile?.role === 'admin' && (
+                  <Button variant="ghost" size="sm" onClick={() => navigate('/admin')}>
+                    Admin
+                  </Button>
+                )}
                 <div className="flex items-center gap-2 text-sm">
                   <User className="w-4 h-4" />
                   <span className="text-muted-foreground">
-                    {user.user_metadata?.full_name || user.email}
+                    {profile?.full_name || user.email}
                   </span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={onSignOut}>
@@ -58,10 +72,10 @@ const Header = ({ user, onSignOut }: HeaderProps = {}) => {
               </div>
             ) : (
               <>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={() => navigate('/auth')}>
                   Sign In
                 </Button>
-                <Button variant="gradient" size="sm">
+                <Button variant="gradient" size="sm" onClick={() => navigate('/auth')}>
                   Get Started
                 </Button>
               </>

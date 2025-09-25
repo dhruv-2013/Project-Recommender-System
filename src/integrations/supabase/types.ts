@@ -14,6 +14,128 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      applications: {
+        Row: {
+          admin_note: string | null
+          applicant_id: string
+          applicant_type: string
+          created_at: string | null
+          id: string
+          project_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_note?: string | null
+          applicant_id: string
+          applicant_type: string
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_note?: string | null
+          applicant_id?: string
+          applicant_type?: string
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marks: {
+        Row: {
+          created_at: string | null
+          feedback: string | null
+          final_mark: number | null
+          id: string
+          individual_adjustment: number | null
+          project_id: string | null
+          released: boolean | null
+          team_id: string | null
+          team_mark: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          feedback?: string | null
+          final_mark?: number | null
+          id?: string
+          individual_adjustment?: number | null
+          project_id?: string | null
+          released?: boolean | null
+          team_id?: string | null
+          team_mark?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          feedback?: string | null
+          final_mark?: number | null
+          id?: string
+          individual_adjustment?: number | null
+          project_id?: string | null
+          released?: boolean | null
+          team_id?: string | null
+          team_mark?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marks_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           academic_level: string | null
@@ -23,6 +145,7 @@ export type Database = {
           field_of_study: string | null
           full_name: string | null
           id: string
+          role: Database["public"]["Enums"]["user_role"] | null
           university: string | null
           updated_at: string
           user_id: string
@@ -35,6 +158,7 @@ export type Database = {
           field_of_study?: string | null
           full_name?: string | null
           id?: string
+          role?: Database["public"]["Enums"]["user_role"] | null
           university?: string | null
           updated_at?: string
           user_id: string
@@ -47,6 +171,7 @@ export type Database = {
           field_of_study?: string | null
           full_name?: string | null
           id?: string
+          role?: Database["public"]["Enums"]["user_role"] | null
           university?: string | null
           updated_at?: string
           user_id?: string
@@ -93,6 +218,9 @@ export type Database = {
       }
       projects: {
         Row: {
+          archived: boolean | null
+          assessor_ids: string[] | null
+          capacity: number | null
           category: string
           created_at: string
           description: string
@@ -103,6 +231,7 @@ export type Database = {
           learning_outcomes: string[]
           mentorship_available: boolean | null
           preferred_skills: string[]
+          published: boolean | null
           required_skills: string[]
           team_size_max: number
           team_size_min: number
@@ -110,6 +239,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived?: boolean | null
+          assessor_ids?: string[] | null
+          capacity?: number | null
           category: string
           created_at?: string
           description: string
@@ -120,6 +252,7 @@ export type Database = {
           learning_outcomes?: string[]
           mentorship_available?: boolean | null
           preferred_skills?: string[]
+          published?: boolean | null
           required_skills?: string[]
           team_size_max?: number
           team_size_min?: number
@@ -127,6 +260,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived?: boolean | null
+          assessor_ids?: string[] | null
+          capacity?: number | null
           category?: string
           created_at?: string
           description?: string
@@ -137,6 +273,7 @@ export type Database = {
           learning_outcomes?: string[]
           mentorship_available?: boolean | null
           preferred_skills?: string[]
+          published?: boolean | null
           required_skills?: string[]
           team_size_max?: number
           team_size_min?: number
@@ -199,6 +336,124 @@ export type Database = {
         }
         Relationships: []
       }
+      team_invitations: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          invited_by: string | null
+          status: string | null
+          team_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          invited_by?: string | null
+          status?: string | null
+          team_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          invited_by?: string | null
+          status?: string | null
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invitations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          id: string
+          joined_at: string | null
+          role: string | null
+          team_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          team_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          team_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_skills: {
+        Row: {
+          created_at: string | null
+          id: string
+          level: number | null
+          skill_name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          level?: number | null
+          skill_name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          level?: number | null
+          skill_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -207,7 +462,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "student"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -334,6 +589,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "student"],
+    },
   },
 } as const
