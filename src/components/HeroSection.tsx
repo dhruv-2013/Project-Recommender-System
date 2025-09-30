@@ -6,12 +6,6 @@ import RaycastBackground from "./RaycastBackground";
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Raycast Animated Background */}
-      <RaycastBackground />
-      
-      {/* Minimal overlay to ensure text readability */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black/10 via-transparent to-black/20" />
-
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 text-center">
         <div className="max-w-4xl mx-auto animate-fade-up">

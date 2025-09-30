@@ -15,7 +15,7 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
   const navigate = useNavigate();
 
   return (
-    <header className="fixed top-0 w-full bg-background/95 backdrop-blur-sm border-b border-border z-50">
+    <header className="fixed top-0 w-full bg-black/20 backdrop-blur-xl border-b border-white/10 z-50">
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -23,23 +23,23 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
               <Brain className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold bg-gradient-hero bg-clip-text text-transparent">
+            <span className="text-xl font-bold text-white">
               ProjectMatch
             </span>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-medium hover:text-primary transition-colors">
+            <a href="#features" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
               Features
             </a>
-            <a href="#how-it-works" className="text-sm font-medium hover:text-primary transition-colors">
+            <a href="#how-it-works" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
               How It Works
             </a>
-            <a href="#projects" className="text-sm font-medium hover:text-primary transition-colors">
+            <a href="#projects" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
               Projects
             </a>
-            <a href="#about" className="text-sm font-medium hover:text-primary transition-colors">
+            <a href="#about" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
               About
             </a>
           </nav>
@@ -72,10 +72,10 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
               </div>
             ) : (
               <>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/auth')}>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/auth')} className="text-white/70 hover:text-white hover:bg-white/10">
                   Sign In
                 </Button>
-                <Button variant="gradient" size="sm" onClick={() => navigate('/auth')}>
+                <Button size="sm" onClick={() => navigate('/auth')} className="bg-white/10 text-white border border-white/20 hover:bg-white/20">
                   Get Started
                 </Button>
               </>

@@ -100,10 +100,10 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-400" />
+          <p className="text-white/70">Loading...</p>
         </div>
       </div>
     );
@@ -117,15 +117,14 @@ const Index = () => {
           <HeroSection />
           <div className="container mx-auto px-4 py-16 text-center">
             <div className="max-w-2xl mx-auto space-y-6">
-              <h2 className="text-3xl font-bold">Ready to Find Your Perfect Project?</h2>
-              <p className="text-muted-foreground text-lg">
+              <h2 className="text-3xl font-bold text-white">Ready to Find Your Perfect Project?</h2>
+              <p className="text-white/70 text-lg">
                 Sign up or sign in to create your student profile and get AI-powered project recommendations tailored to your skills and interests.
               </p>
               <Button 
                 onClick={() => navigate('/auth')}
                 size="lg"
-                variant="gradient"
-                className="text-lg px-8 py-3"
+                className="bg-white/10 text-white border border-white/20 hover:bg-white/20 text-lg px-8 py-3"
               >
                 Get Started
               </Button>
@@ -144,8 +143,8 @@ const Index = () => {
         <main className="pt-16">
           <div className="container mx-auto px-4 py-16 text-center">
             <div className="max-w-2xl mx-auto space-y-6 mb-16">
-              <h2 className="text-3xl font-bold">Welcome, {user.user_metadata?.full_name || user.email}!</h2>
-              <p className="text-muted-foreground text-lg">
+              <h2 className="text-3xl font-bold text-white">Welcome, {user.user_metadata?.full_name || user.email}!</h2>
+              <p className="text-white/70 text-lg">
                 Let's create your student profile to get personalized project recommendations.
               </p>
             </div>
@@ -156,8 +155,8 @@ const Index = () => {
         <main className="pt-16">
           <div className="container mx-auto px-4 py-8 text-center">
             <div className="max-w-2xl mx-auto space-y-4">
-              <h2 className="text-2xl font-bold">Welcome back, {studentProfile.name}!</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-2xl font-bold text-white">Welcome back, {studentProfile.name}!</h2>
+              <p className="text-white/70">
                 Here are your personalized project recommendations based on your profile.
               </p>
             </div>
