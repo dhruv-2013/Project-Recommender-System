@@ -9,8 +9,8 @@ const HeroSection = () => {
       {/* Raycast Animated Background */}
       <RaycastBackground />
       
-      {/* Subtle overlay to ensure text readability */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background/10 via-transparent to-background/20" />
+      {/* Minimal overlay to ensure text readability */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/10 via-transparent to-black/20" />
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 text-center">
