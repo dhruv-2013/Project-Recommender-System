@@ -29,16 +29,16 @@ const RaycastBackground = () => {
 
     const createParticles = () => {
       const particles: Particle[] = [];
-      const particleCount = Math.min(80, Math.floor((canvas.width * canvas.height) / 15000));
+      const particleCount = Math.min(120, Math.floor((canvas.width * canvas.height) / 8000));
       
       for (let i = 0; i < particleCount; i++) {
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 0.5,
-          vy: (Math.random() - 0.5) * 0.5,
-          size: Math.random() * 2 + 1,
-          opacity: Math.random() * 0.6 + 0.2,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: (Math.random() - 0.5) * 0.8,
+          size: Math.random() * 3 + 1,
+          opacity: Math.random() * 0.9 + 0.3,
           hue: Math.random() * 60 + 200, // Blue to purple range
         });
       }
@@ -74,14 +74,14 @@ const RaycastBackground = () => {
           const dy = particles[i].y - particles[j].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           
-          if (distance < 120) {
-            const opacity = (120 - distance) / 120 * 0.1;
+          if (distance < 150) {
+            const opacity = (150 - distance) / 150 * 0.3;
             ctx.save();
             ctx.globalAlpha = opacity;
-            ctx.strokeStyle = `hsl(220, 50%, 70%)`;
-            ctx.lineWidth = 0.5;
+            ctx.strokeStyle = `hsl(${220 + Math.sin(Date.now() * 0.001) * 40}, 70%, 80%)`;
+            ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[j].y);
+            ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
             ctx.stroke();
             ctx.restore();
@@ -114,9 +114,9 @@ const RaycastBackground = () => {
       
       // Draw background gradient
       const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, 'rgba(15, 23, 42, 0.8)');
-      gradient.addColorStop(0.5, 'rgba(30, 41, 59, 0.6)');
-      gradient.addColorStop(1, 'rgba(15, 23, 42, 0.9)');
+      gradient.addColorStop(0, 'rgba(15, 23, 42, 0.4)');
+      gradient.addColorStop(0.5, 'rgba(30, 41, 59, 0.3)');
+      gradient.addColorStop(1, 'rgba(15, 23, 42, 0.5)');
       
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
