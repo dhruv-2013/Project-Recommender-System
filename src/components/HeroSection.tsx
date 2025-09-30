@@ -3,7 +3,11 @@ import { ArrowRight, Sparkles, Users, Target, Brain } from "lucide-react";
 import heroBackground from "@/assets/hero-background.jpg";
 import RaycastBackground from "./RaycastBackground";
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  onGetStarted?: () => void;
+}
+
+const HeroSection = ({ onGetStarted }: HeroSectionProps) => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Content */}
@@ -30,7 +34,12 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Button variant="hero" size="lg" className="px-8 py-4 text-lg">
+            <Button 
+              variant="hero" 
+              size="lg" 
+              className="px-8 py-4 text-lg"
+              onClick={onGetStarted}
+            >
               Get Started
               <ArrowRight className="ml-2" />
             </Button>

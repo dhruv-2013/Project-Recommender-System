@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [searchParams] = useSearchParams();
+  const roleFromUrl = searchParams.get('role') as 'student' | 'admin' | null;
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -33,12 +35,13 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName,
+            role: roleFromUrl || 'student'
           },
           emailRedirectTo: `${window.location.origin}/`,
         },
@@ -46,12 +49,18 @@ const Auth = () => {
 
       if (error) throw error;
 
+      // Update profile with role after signup
+      if (roleFromUrl && data.user) {
+        await supabase
+          .from('profiles')
+          .update({ role: roleFromUrl })
+          .eq('user_id', data.user.id);
+      }
+
       toast({
         title: "Account created successfully!",
-        description: "Please select your role to continue.",
+        description: "You can now sign in to your account.",
       });
-
-      navigate("/role-selection");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -83,14 +92,23 @@ const Auth = () => {
         .eq('user_id', user?.id)
         .maybeSingle();
 
+      // If role is specified in URL, update profile role
+      if (roleFromUrl && user) {
+        await supabase
+          .from('profiles')
+          .update({ role: roleFromUrl })
+          .eq('user_id', user.id);
+      }
+
       toast({
         title: "Welcome back!",
         description: "You have been signed in successfully.",
       });
 
-      if (profile?.role === 'admin') {
+      const finalRole = roleFromUrl || profile?.role;
+      if (finalRole === 'admin') {
         navigate("/admin");
-      } else if (profile?.role === 'student') {
+      } else if (finalRole === 'student') {
         navigate("/");
       } else {
         navigate("/role-selection");
@@ -126,7 +144,9 @@ const Auth = () => {
 
         <Card className="shadow-lg border-muted/20 backdrop-blur-sm bg-background/80">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Welcome</CardTitle>
+            <CardTitle className="text-2xl text-center">
+              {roleFromUrl === 'admin' ? '👨‍💼 Admin' : '🎓 Student'} Access
+            </CardTitle>
             <CardDescription className="text-center">
               Sign in to your account or create a new one
             </CardDescription>

@@ -26,6 +26,9 @@ export const ProjectManagement = () => {
     difficulty_level: '',
     estimated_duration: '',
     capacity: 1,
+    team_size_min: 1,
+    team_size_max: 1,
+    assessor_ids: [] as string[],
     required_skills: [] as string[],
     preferred_skills: [] as string[],
     learning_outcomes: [] as string[],
@@ -109,6 +112,9 @@ export const ProjectManagement = () => {
       difficulty_level: '',
       estimated_duration: '',
       capacity: 1,
+      team_size_min: 1,
+      team_size_max: 1,
+      assessor_ids: [],
       required_skills: [],
       preferred_skills: [],
       learning_outcomes: [],
@@ -127,6 +133,9 @@ export const ProjectManagement = () => {
       difficulty_level: project.difficulty_level,
       estimated_duration: project.estimated_duration,
       capacity: project.capacity,
+      team_size_min: project.team_size_min || 1,
+      team_size_max: project.team_size_max || 1,
+      assessor_ids: project.assessor_ids || [],
       required_skills: project.required_skills || [],
       preferred_skills: project.preferred_skills || [],
       learning_outcomes: project.learning_outcomes || [],
@@ -261,7 +270,7 @@ export const ProjectManagement = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="capacity">Capacity</Label>
+                  <Label htmlFor="capacity">Capacity (Number of Teams)</Label>
                   <Input
                     id="capacity"
                     type="number"
@@ -270,6 +279,43 @@ export const ProjectManagement = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, capacity: parseInt(e.target.value) || 1 }))}
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="team-min">Min Team Size</Label>
+                  <Input
+                    id="team-min"
+                    type="number"
+                    min="1"
+                    value={formData.team_size_min}
+                    onChange={(e) => setFormData(prev => ({ ...prev, team_size_min: parseInt(e.target.value) || 1 }))}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="team-max">Max Team Size</Label>
+                  <Input
+                    id="team-max"
+                    type="number"
+                    min="1"
+                    value={formData.team_size_max}
+                    onChange={(e) => setFormData(prev => ({ ...prev, team_size_max: parseInt(e.target.value) || 1 }))}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="assessors">Assessor IDs (comma-separated UUIDs)</Label>
+                <Input
+                  id="assessors"
+                  value={formData.assessor_ids.join(', ')}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    assessor_ids: e.target.value.split(',').map(id => id.trim()).filter(id => id)
+                  }))}
+                  placeholder="assessor-uuid-1, assessor-uuid-2"
+                />
               </div>
 
               <div className="flex items-center space-x-4">
@@ -331,7 +377,7 @@ export const ProjectManagement = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Category:</span> {project.category}
                 </div>
@@ -340,6 +386,9 @@ export const ProjectManagement = () => {
                 </div>
                 <div>
                   <span className="font-medium">Capacity:</span> {project.capacity}
+                </div>
+                <div>
+                  <span className="font-medium">Team Size:</span> {project.team_size_min}-{project.team_size_max}
                 </div>
               </div>
             </CardContent>
