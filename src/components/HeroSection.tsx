@@ -1,24 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Users, Target, Brain } from "lucide-react";
 import heroBackground from "@/assets/hero-background.jpg";
+import RaycastBackground from "./RaycastBackground";
 
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image with Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroBackground})` }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/90 to-background/80" />
-      </div>
+      {/* Raycast Animated Background */}
+      <RaycastBackground />
       
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-128 h-128 bg-primary/3 rounded-full blur-3xl animate-pulse-glow" />
-      </div>
+      {/* Subtle overlay to ensure text readability */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background/20 via-transparent to-background/30" />
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 text-center">
