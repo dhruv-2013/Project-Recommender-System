@@ -127,6 +127,14 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => navigate('/')}
+          className="mb-4"
+        >
+          ← Back to Home
+        </Button>
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="relative">
