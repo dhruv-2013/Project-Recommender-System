@@ -48,10 +48,10 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/projects')} className="text-white hover:bg-white/10">
                   Projects
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/teams')}>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/teams')} className="text-white hover:bg-white/10">
                   Teams
                 </Button>
                 {profile?.role === 'admin' && (
@@ -59,13 +59,13 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
                     Admin
                   </Button>
                 )}
-                <div className="flex items-center gap-2 text-sm">
+                <div className="flex items-center gap-2 text-sm text-white">
                   <User className="w-4 h-4" />
-                  <span className="text-muted-foreground">
+                  <span>
                     {profile?.full_name || user.email}
                   </span>
                 </div>
-                <Button variant="ghost" size="sm" onClick={onSignOut}>
+                <Button variant="ghost" size="sm" onClick={onSignOut} className="text-white hover:bg-white/10">
                   <LogOut className="w-4 h-4 mr-1" />
                   Sign Out
                 </Button>
