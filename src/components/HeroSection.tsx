@@ -54,8 +54,8 @@ const HeroSection = ({ onGetStarted }: HeroSectionProps) => {
               <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mb-4">
                 <Brain className="w-6 h-6 text-primary-foreground" />
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-foreground">AI Skill Analysis</h3>
-              <p className="text-foreground/80 text-center">
+              <h3 className="text-lg font-bold mb-2 text-foreground">AI Skill Analysis</h3>
+              <p className="text-foreground text-center font-medium">
                 Advanced NLP extracts and normalizes skills from resumes and project descriptions
               </p>
             </div>
@@ -64,8 +64,8 @@ const HeroSection = ({ onGetStarted }: HeroSectionProps) => {
               <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mb-4">
                 <Users className="w-6 h-6 text-primary-foreground" />
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-foreground">Team Complementarity</h3>
-              <p className="text-foreground/80 text-center">
+              <h3 className="text-lg font-bold mb-2 text-foreground">Team Complementarity</h3>
+              <p className="text-foreground text-center font-medium">
                 Forms balanced teams by matching complementary skills and strengths
               </p>
             </div>
@@ -74,8 +74,8 @@ const HeroSection = ({ onGetStarted }: HeroSectionProps) => {
               <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mb-4">
                 <Target className="w-6 h-6 text-primary-foreground" />
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-foreground">Perfect Matches</h3>
-              <p className="text-foreground/80 text-center">
+              <h3 className="text-lg font-bold mb-2 text-foreground">Perfect Matches</h3>
+              <p className="text-foreground text-center font-medium">
                 Recommends projects with highest compatibility for student success
               </p>
             </div>
