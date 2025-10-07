@@ -36,9 +36,6 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
             <a href="#how-it-works" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
               How It Works
             </a>
-            <a href="#projects" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
-              Projects
-            </a>
             <a href="#about" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
               About
             </a>
@@ -48,9 +45,6 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" onClick={() => navigate('/projects')} className="text-white hover:bg-white/10">
-                  Projects
-                </Button>
                 <Button variant="ghost" size="sm" onClick={() => navigate('/teams')} className="text-white hover:bg-white/10">
                   Teams
                 </Button>
@@ -112,13 +106,6 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 How It Works
-              </a>
-              <a 
-                href="#projects" 
-                className="block px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Projects
               </a>
               <a 
                 href="#about" 
