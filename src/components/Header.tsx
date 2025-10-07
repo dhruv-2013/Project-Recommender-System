@@ -45,9 +45,6 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" onClick={() => navigate('/teams')} className="text-white hover:bg-white/10">
-                  Teams
-                </Button>
                 {profile?.role === 'admin' && (
                   <Button variant="ghost" size="sm" onClick={() => navigate('/admin')}>
                     Admin
