@@ -287,16 +287,16 @@ export type Database = {
           academic_level: string
           created_at: string
           email: string
-          experience_level: string
+          experience_level: string | null
           field_of_study: string
           id: string
           interests: string[]
           name: string
-          preferred_project_duration: string
-          preferred_team_size: string
+          preferred_project_duration: string | null
+          preferred_team_size: string | null
           skills: string[]
-          time_commitment: string
-          university: string
+          time_commitment: string | null
+          university: string | null
           updated_at: string
           user_id: string
         }
@@ -304,16 +304,16 @@ export type Database = {
           academic_level: string
           created_at?: string
           email: string
-          experience_level: string
+          experience_level?: string | null
           field_of_study: string
           id?: string
           interests?: string[]
           name: string
-          preferred_project_duration: string
-          preferred_team_size: string
+          preferred_project_duration?: string | null
+          preferred_team_size?: string | null
           skills?: string[]
-          time_commitment: string
-          university: string
+          time_commitment?: string | null
+          university?: string | null
           updated_at?: string
           user_id: string
         }
@@ -321,16 +321,16 @@ export type Database = {
           academic_level?: string
           created_at?: string
           email?: string
-          experience_level?: string
+          experience_level?: string | null
           field_of_study?: string
           id?: string
           interests?: string[]
           name?: string
-          preferred_project_duration?: string
-          preferred_team_size?: string
+          preferred_project_duration?: string | null
+          preferred_team_size?: string | null
           skills?: string[]
-          time_commitment?: string
-          university?: string
+          time_commitment?: string | null
+          university?: string | null
           updated_at?: string
           user_id?: string
         }

@@ -25,11 +25,6 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
     email: "",
     academicLevel: "",
     fieldOfStudy: "",
-    university: "",
-    experienceLevel: "",
-    preferredTeamSize: "",
-    timeCommitment: "",
-    preferredProjectDuration: "",
   });
 
   const addSkill = () => {
@@ -71,13 +66,8 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
         email: formData.email,
         academic_level: formData.academicLevel,
         field_of_study: formData.fieldOfStudy,
-        university: formData.university,
         skills: skills,
         interests: interests,
-        experience_level: formData.experienceLevel,
-        preferred_team_size: formData.preferredTeamSize,
-        time_commitment: formData.timeCommitment,
-        preferred_project_duration: formData.preferredProjectDuration,
       };
 
       const { data, error } = await supabase
@@ -179,75 +169,6 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">University</label>
-                  <Input
-                    value={formData.university}
-                    onChange={(e) => setFormData({ ...formData, university: e.target.value })}
-                    placeholder="Enter your university name"
-                    required
-                  />
-                </div>
-
-                {/* Project Preferences */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Experience Level</label>
-                    <Select value={formData.experienceLevel} onValueChange={(value) => setFormData({ ...formData, experienceLevel: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select experience" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Preferred Team Size</label>
-                    <Select value={formData.preferredTeamSize} onValueChange={(value) => setFormData({ ...formData, preferredTeamSize: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select team size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="solo">Solo (1 person)</SelectItem>
-                        <SelectItem value="small">Small (2-3 people)</SelectItem>
-                        <SelectItem value="medium">Medium (4-5 people)</SelectItem>
-                        <SelectItem value="large">Large (6+ people)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Time Commitment</label>
-                    <Select value={formData.timeCommitment} onValueChange={(value) => setFormData({ ...formData, timeCommitment: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select commitment" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="part-time">Part-time (5-10 hrs/week)</SelectItem>
-                        <SelectItem value="moderate">Moderate (10-20 hrs/week)</SelectItem>
-                        <SelectItem value="full-time">Full-time (20+ hrs/week)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Project Duration</label>
-                    <Select value={formData.preferredProjectDuration} onValueChange={(value) => setFormData({ ...formData, preferredProjectDuration: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select duration" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="short">Short (4-8 weeks)</SelectItem>
-                        <SelectItem value="medium">Medium (8-16 weeks)</SelectItem>
-                        <SelectItem value="long">Long (16+ weeks)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
 
                 {/* Skills */}
                 <div>

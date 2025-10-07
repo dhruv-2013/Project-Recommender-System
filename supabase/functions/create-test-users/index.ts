@@ -85,13 +85,8 @@ Deno.serve(async (req) => {
             email: student.email,
             academic_level: student.level,
             field_of_study: student.field,
-            university: 'Test University',
             skills: student.skills,
             interests: student.interests,
-            experience_level: 'Intermediate',
-            preferred_team_size: '3-4 members',
-            time_commitment: '10-15 hours/week',
-            preferred_project_duration: '3-4 months'
           });
 
         results.students.push({ email: student.email, created: true });
