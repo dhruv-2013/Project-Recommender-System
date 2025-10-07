@@ -221,7 +221,7 @@ const Index = () => {
           <div className="container mx-auto px-4 py-8 text-center">
             <div className="max-w-2xl mx-auto space-y-4">
               <h2 className="text-2xl font-bold text-white">Welcome back, {studentProfile.name}!</h2>
-              <p className="text-white/70">
+              <p className="text-white/90 font-medium">
                 Here are your personalized project recommendations based on your profile.
               </p>
             </div>
