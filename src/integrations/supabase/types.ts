@@ -285,6 +285,7 @@ export type Database = {
       student_profiles: {
         Row: {
           academic_level: string
+          courses: string[]
           created_at: string
           email: string
           experience_level: string | null
@@ -299,9 +300,11 @@ export type Database = {
           university: string | null
           updated_at: string
           user_id: string
+          wam: number | null
         }
         Insert: {
           academic_level: string
+          courses?: string[]
           created_at?: string
           email: string
           experience_level?: string | null
@@ -316,9 +319,11 @@ export type Database = {
           university?: string | null
           updated_at?: string
           user_id: string
+          wam?: number | null
         }
         Update: {
           academic_level?: string
+          courses?: string[]
           created_at?: string
           email?: string
           experience_level?: string | null
@@ -333,6 +338,7 @@ export type Database = {
           university?: string | null
           updated_at?: string
           user_id?: string
+          wam?: number | null
         }
         Relationships: []
       }

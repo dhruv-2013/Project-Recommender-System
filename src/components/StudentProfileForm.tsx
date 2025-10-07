@@ -13,11 +13,26 @@ interface StudentProfileFormProps {
   onProfileCreated?: (profile: any) => void;
 }
 
+const AVAILABLE_COURSES = [
+  { code: "COMP9444", name: "Neural Networks and Deep Learning" },
+  { code: "COMP9417", name: "Machine Learning and Data Mining" },
+  { code: "COMP9318", name: "Data Warehousing and Data Mining" },
+  { code: "COMP9414", name: "Artificial Intelligence" },
+  { code: "COMP9517", name: "Computer Vision" },
+  { code: "COMP9334", name: "Capacity Planning of Computer Systems and Networks" },
+  { code: "COMP9321", name: "Web Application Engineering" },
+  { code: "COMP9313", name: "Big Data Management" },
+  { code: "COMP9242", name: "Advanced Operating Systems" },
+  { code: "COMP9243", name: "Distributed Systems" },
+];
+
 const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) => {
   const [skills, setSkills] = useState<string[]>([]);
   const [interests, setInterests] = useState<string[]>([]);
+  const [courses, setCourses] = useState<string[]>([]);
   const [currentSkill, setCurrentSkill] = useState("");
   const [currentInterest, setCurrentInterest] = useState("");
+  const [courseSearch, setCourseSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -25,6 +40,7 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
     email: "",
     academicLevel: "",
     fieldOfStudy: "",
+    wam: "",
   });
 
   useEffect(() => {
@@ -73,6 +89,23 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
     setInterests(interests.filter(interest => interest !== interestToRemove));
   };
 
+  const addCourse = (courseCode: string) => {
+    if (!courses.includes(courseCode)) {
+      setCourses([...courses, courseCode]);
+      setCourseSearch("");
+    }
+  };
+
+  const removeCourse = (courseToRemove: string) => {
+    setCourses(courses.filter(course => course !== courseToRemove));
+  };
+
+  const filteredCourses = AVAILABLE_COURSES.filter(course => 
+    !courses.includes(course.code) &&
+    (course.code.toLowerCase().includes(courseSearch.toLowerCase()) ||
+     course.name.toLowerCase().includes(courseSearch.toLowerCase()))
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -90,8 +123,10 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
         email: formData.email,
         academic_level: formData.academicLevel,
         field_of_study: formData.fieldOfStudy,
+        wam: formData.wam ? parseFloat(formData.wam) : null,
         skills: skills,
         interests: interests,
+        courses: courses,
       };
 
       const { data, error } = await supabase
@@ -148,7 +183,7 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                 <input type="hidden" name="email" value={formData.email} />
 
                 {/* Academic Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Academic Level</label>
                     <Select value={formData.academicLevel} onValueChange={(value) => setFormData({ ...formData, academicLevel: value })}>
@@ -170,6 +205,18 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                       onChange={(e) => setFormData({ ...formData, fieldOfStudy: e.target.value })}
                       placeholder="e.g., Computer Science"
                       required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">WAM (Percentage)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={formData.wam}
+                      onChange={(e) => setFormData({ ...formData, wam: e.target.value })}
+                      placeholder="e.g., 85.5"
                     />
                   </div>
                 </div>
@@ -252,6 +299,62 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                     {interests.length === 0 && (
                       <p className="text-muted-foreground text-sm italic">
                         No interests added yet. Start typing to add your first interest.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Courses */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Completed Courses</label>
+                  <div className="relative mb-3">
+                    <Input
+                      value={courseSearch}
+                      onChange={(e) => setCourseSearch(e.target.value)}
+                      placeholder="Search for courses (e.g., COMP9444)"
+                    />
+                    {courseSearch && filteredCourses.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                        {filteredCourses.map((course) => (
+                          <button
+                            key={course.code}
+                            type="button"
+                            onClick={() => addCourse(course.code)}
+                            className="w-full text-left px-4 py-2 hover:bg-accent transition-colors"
+                          >
+                            <div className="font-medium">{course.code}</div>
+                            <div className="text-sm text-muted-foreground">{course.name}</div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Courses Display */}
+                  <div className="flex flex-wrap gap-2 min-h-[2rem]">
+                    {courses.map((courseCode, index) => {
+                      const course = AVAILABLE_COURSES.find(c => c.code === courseCode);
+                      return (
+                        <Badge 
+                          key={index} 
+                          variant="secondary" 
+                          className="flex items-center gap-1 px-3 py-1"
+                        >
+                          <span className="font-medium">{courseCode}</span>
+                          <span className="text-xs">- {course?.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeCourse(courseCode)}
+                            className="ml-1 hover:text-destructive transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      );
+                    })}
+                    {courses.length === 0 && (
+                      <p className="text-muted-foreground text-sm italic">
+                        No courses added yet. Search and select courses you've completed.
                       </p>
                     )}
                   </div>
