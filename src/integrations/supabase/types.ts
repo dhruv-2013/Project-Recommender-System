@@ -342,6 +342,54 @@ export type Database = {
         }
         Relationships: []
       }
+      student_subjects: {
+        Row: {
+          created_at: string
+          id: string
+          subject_code: string
+          term: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          subject_code: string
+          term: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          subject_code?: string
+          term?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subjects: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       team_invitations: {
         Row: {
           created_at: string | null

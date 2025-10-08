@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import StudentProfileForm from "@/components/StudentProfileForm";
 import ProjectRecommendations from "@/components/ProjectRecommendations";
+import { SubjectSelector } from "@/components/SubjectSelector";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -218,7 +219,16 @@ const Index = () => {
         </main>
       ) : (
         <main className="pt-16">
-          <ProjectRecommendations userId={user.id} studentProfile={studentProfile} />
+          <div className="container mx-auto px-4 py-8">
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <SubjectSelector userId={user.id} />
+              </div>
+              <div className="lg:col-span-2">
+                <ProjectRecommendations userId={user.id} studentProfile={studentProfile} />
+              </div>
+            </div>
+          </div>
         </main>
       )}
     </div>
