@@ -88,7 +88,7 @@ This project will be released under the **MIT License** once the first public ve
 
 **Dhruv Gulwani**  
 UNSW Computer Engineering Graduate | Research Assistant | AI & Frontend Developer  
-[LinkedIn](https://www.linkedin.com/in/dhruvgulwani) • [Portfolio](https://dhruv-2013.github.io)
+[LinkedIn](https://www.linkedin.com/in/dhruv-gulwani-b12109238/)
 
 ---
 
