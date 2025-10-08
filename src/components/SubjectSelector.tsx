@@ -77,6 +77,7 @@ export function SubjectSelector({ userId }: SubjectSelectorProps) {
       if (error) throw error;
 
       toast.success("Enrolled in subject successfully!");
+      navigate(`/subject/${selectedSubject}`);
       setSelectedSubject("");
       setSelectedTerm("");
       fetchData();
