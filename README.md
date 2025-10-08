@@ -36,12 +36,11 @@ The architecture combines **LLM-based text embeddings** with **vector similarity
 
 | Layer | Technologies |
 |-------|---------------|
-| **Frontend** | Next.js (React), Tailwind CSS, shadcn/ui |
-| **Backend** | FastAPI / Node.js (planned) |
-| **Database** | PostgreSQL (NeonDB) |
-| **AI/NLP** | OpenAI / Hugging Face embeddings for skill extraction |
-| **Vector Search** | FAISS or pgvector |
-| **Deployment** | Vercel (Frontend), Render / AWS (Backend planned) |
+| **Frontend** | React, Vite, TypeScript, Tailwind CSS, shadcn/ui |
+| **Backend** | Supabase (PostgreSQL, Auth, Storage, Edge Functions) |
+| **Database** | PostgreSQL with pgvector for embeddings |
+| **AI/NLP** | OpenAI / Google embeddings for skill extraction |
+| **Deployment** | Vercel |
 
 ---
 
