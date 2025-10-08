@@ -1,73 +1,101 @@
-# Welcome to your Lovable project
+# Project Recommender System (WIP)
 
-## Project info
+An AI-powered platform designed to **intelligently match students with academic or industry projects** based on their skills, interests, and background.  
+The goal is to streamline the project allocation process, enhance fairness, and promote meaningful collaborations through data-driven insights.
 
-**URL**: https://lovable.dev/projects/cb98b919-1a9e-495c-bc68-7824fba03988
+**Live Preview:** [project-recommender-system.vercel.app](https://canvas-flex-creator-2wc3svubw-dhruv-2013s-projects.vercel.app)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## Project Status
 
-**Use Lovable**
+> ⚙️ **Work in Progress**  
+> The system is actively being developed as part of a research initiative at UNSW under the EF Grant.  
+> Core modules — such as NLP-based skill extraction, vectorized search, and project recommendation logic — are currently in progress.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/cb98b919-1a9e-495c-bc68-7824fba03988) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## Objective
 
-**Use your preferred IDE**
+To develop a scalable and AI-assisted platform that can:
+- Automatically extract and interpret student skillsets from resumes or manual inputs  
+- Recommend the most suitable projects using hybrid recommendation algorithms  
+- Assist administrators in project approvals, supervision assignments, and performance tracking  
+- Support fair and data-informed team formation based on complementary skills and project demands  
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## System Overview
 
-Follow these steps:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+The architecture combines **LLM-based text embeddings** with **vector similarity search** to align student competencies and project requirements.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+---
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Tech Stack
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+| Layer | Technologies |
+|-------|---------------|
+| **Frontend** | Next.js (React), Tailwind CSS, shadcn/ui |
+| **Backend** | FastAPI / Node.js (planned) |
+| **Database** | PostgreSQL (NeonDB) |
+| **AI/NLP** | OpenAI / Hugging Face embeddings for skill extraction |
+| **Vector Search** | FAISS or pgvector |
+| **Deployment** | Vercel (Frontend), Render / AWS (Backend planned) |
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Key Features (Planned)
 
-**Use GitHub Codespaces**
+- 🔍 **AI Skill Extraction:** Automatically parse and vectorize student skills  
+- 🎓 **Smart Project Matching:** Rank projects by relevance using similarity metrics  
+- 🧑‍🏫 **Admin Dashboard:** Manage projects, teams, and approvals  
+- 🤝 **Team Formation:** Suggest ideal combinations of students based on skill complementarity  
+- 📊 **Analytics Dashboard:** Visualize skill distributions, project coverage, and matching accuracy  
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## Research Context
 
-This project is built with:
+This project is part of the **UNSW EF Grant Research Initiative**, supervised by **Dr. Basem Suleiman** and **Mr. Sonit Singh**, focusing on developing scalable, fair, and AI-driven academic allocation systems.  
+The system will be evaluated on parameters such as **matching accuracy**, **diversity of skill utilization**, and **user satisfaction**.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## Design Preview
 
-Simply open [Lovable](https://lovable.dev/projects/cb98b919-1a9e-495c-bc68-7824fba03988) and click on Share -> Publish.
+> *(UI components and dashboard prototypes are under active development — screenshots will be added soon.)*
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
+## Future Enhancements
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- Integration with UNSW course/project databases  
+- Multi-factor ranking using experience, grades, and interests  
+- Feedback-driven model improvement  
+- Exportable reports for supervisors and coordinators  
+- Support for cross-faculty collaborations and industry projects  
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+---
+
+## License
+
+This project will be released under the **MIT License** once the first public version is deployed.
+
+---
+
+## Author
+
+**Dhruv Gulwani**  
+UNSW Computer Engineering Graduate | Research Assistant | AI & Frontend Developer  
+[LinkedIn](https://www.linkedin.com/in/dhruvgulwani) • [Portfolio](https://dhruv-2013.github.io)
+
+---
+
+## Acknowledgements
+
+- **Supervisors:** Dr. Basem Suleiman, Mr. Sonit Singh  
+- **Institution:** School of Computer Science and Engineering, UNSW Sydney  
+- **Funding:** UNSW EF Grant — Project Recommendation System Initiative
+
+---
