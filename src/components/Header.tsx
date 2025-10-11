@@ -1,8 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { Brain, Menu, X, LogOut, User } from "lucide-react";
+import { Brain, Menu, X, LogOut, User, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User as SupabaseUser } from "@supabase/supabase-js";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   user?: SupabaseUser;
@@ -53,16 +61,31 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
                     Admin
                   </Button>
                 )}
-                <div className="flex items-center gap-2 text-sm text-white">
-                  <User className="w-4 h-4" />
-                  <span>
-                    {profile?.full_name || user.email}
-                  </span>
-                </div>
-                <Button variant="ghost" size="sm" onClick={onSignOut} className="text-white hover:bg-white/10">
-                  <LogOut className="w-4 h-4 mr-1" />
-                  Sign Out
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 text-sm text-white hover:bg-white/10 px-3 py-2 rounded-lg transition-colors">
+                      <User className="w-4 h-4" />
+                      <span>{profile?.full_name || user.email}</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-background border-white/10 z-50">
+                    <DropdownMenuLabel className="text-foreground">My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-white/10" />
+                    <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer text-foreground hover:bg-accent">
+                      <User className="w-4 h-4 mr-2" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer text-foreground hover:bg-accent">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-white/10" />
+                    <DropdownMenuItem onClick={onSignOut} className="cursor-pointer text-foreground hover:bg-accent">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             ) : (
               <>
