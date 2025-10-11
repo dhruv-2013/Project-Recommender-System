@@ -88,14 +88,9 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
                 </DropdownMenu>
               </div>
             ) : (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/auth')} className="text-white/70 hover:text-white hover:bg-white/10">
-                  Sign In
-                </Button>
-                <Button size="sm" onClick={() => navigate('/auth')} className="bg-white/10 text-white border border-white/20 hover:bg-white/20">
-                  Get Started
-                </Button>
-              </>
+              <Button size="sm" onClick={() => navigate('/auth')} className="bg-white/10 text-white border border-white/20 hover:bg-white/20">
+                Get Started
+              </Button>
             )}
           </div>
 
@@ -150,14 +145,9 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
                     </Button>
                   </>
                 ) : (
-                  <>
-                    <Button variant="ghost" size="sm" className="justify-start">
-                      Sign In
-                    </Button>
-                    <Button variant="gradient" size="sm">
-                      Get Started
-                    </Button>
-                  </>
+                  <Button variant="gradient" size="sm">
+                    Get Started
+                  </Button>
                 )}
               </div>
             </nav>
