@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Teams from "./pages/Teams";
 import Subject from "./pages/Subject";
+import Profile from "./pages/Profile";
 import RoleSelection from "./pages/RoleSelection";
 import CreateTestUsers from "./pages/CreateTestUsers";
 import NotFound from "./pages/NotFound";
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/role-selection" element={<RoleSelection />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/teams" element={<Teams />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/subject/:subjectCode" element={<Subject />} />
               <Route path="/create-test-users" element={<CreateTestUsers />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
