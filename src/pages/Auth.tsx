@@ -84,35 +84,13 @@ const Auth = () => {
 
       if (error) throw error;
 
-      // Check if user has a role assigned
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', user?.id)
-        .maybeSingle();
-
-      // If role is specified in URL, update profile role
-      if (roleFromUrl && user) {
-        await supabase
-          .from('profiles')
-          .update({ role: roleFromUrl })
-          .eq('user_id', user.id);
-      }
-
       toast({
         title: "Welcome back!",
         description: "You have been signed in successfully.",
       });
 
-      const finalRole = roleFromUrl || profile?.role;
-      if (finalRole === 'admin') {
-        navigate("/admin");
-      } else if (finalRole === 'student') {
-        navigate("/");
-      } else {
-        navigate("/role-selection");
-      }
+      // Always navigate to role selection page
+      navigate("/role-selection");
     } catch (error: any) {
       toast({
         title: "Error",
