@@ -7,6 +7,7 @@ import HeroSection from "@/components/HeroSection";
 import StudentProfileForm from "@/components/StudentProfileForm";
 import ProjectRecommendations from "@/components/ProjectRecommendations";
 import { SubjectSelector } from "@/components/SubjectSelector";
+import { ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -220,6 +221,14 @@ const Index = () => {
       ) : (
         <main className="pt-16">
           <div className="container mx-auto px-4 py-8">
+            <Button
+              variant="ghost"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="mb-4 !text-white hover:!text-white hover:!bg-white/10 flex items-center gap-2"
+            >
+              <Home className="h-4 w-4" />
+              Back to Top
+            </Button>
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-1">
                 <SubjectSelector userId={user.id} />
