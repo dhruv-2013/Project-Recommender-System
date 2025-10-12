@@ -36,8 +36,8 @@ export function PartnerSuggestions({ subjectCode, userId }: PartnerSuggestionsPr
         .from("student_subjects")
         .select(`
           user_id,
-          profiles!inner(full_name, email),
-          student_profiles!inner(*)
+          profiles:user_id (full_name, email),
+          student_profiles:user_id (*)
         `)
         .eq("subject_code", subjectCode)
         .neq("user_id", userId);
