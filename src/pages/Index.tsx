@@ -176,32 +176,13 @@ const Index = () => {
     );
   }
 
-  // Show welcome page for admins without the hero CTA
+  // Show hero section for admins
   if (profile?.role === 'admin') {
     return (
       <div className="min-h-screen">
         <Header user={user} profile={profile} onSignOut={handleSignOut} />
         <main className="pt-16">
-          <div className="container mx-auto px-4 py-16">
-            <div className="text-center mb-16">
-              <h1 className="text-5xl font-bold text-white mb-4">Welcome back, {profile.full_name || 'Admin'}!</h1>
-              <p className="text-white/70 text-xl">Manage your academic projects and teams</p>
-            </div>
-            
-            <div className="max-w-2xl mx-auto space-y-6 text-center">
-              <h2 className="text-3xl font-bold text-white">Admin Portal</h2>
-              <p className="text-white/70 text-lg">
-                Manage projects, applications, and team approvals from the Admin Dashboard.
-              </p>
-              <Button 
-                onClick={() => navigate('/admin')}
-                size="lg"
-                className="bg-white/10 text-white border border-white/20 hover:bg-white/20 text-lg px-8 py-3"
-              >
-                Go to Admin Dashboard
-              </Button>
-            </div>
-          </div>
+          <HeroSection onGetStarted={() => navigate('/admin')} />
         </main>
       </div>
     );
