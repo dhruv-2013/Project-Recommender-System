@@ -122,15 +122,6 @@ export function SubjectSelector({ userId }: SubjectSelectorProps) {
 
   return (
     <div className="space-y-6">
-      <Button 
-        variant="ghost" 
-        onClick={() => navigate("/")}
-        className="mb-4"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Home
-      </Button>
-      
       <Card>
         <CardHeader>
           <CardTitle>My Subjects</CardTitle>
