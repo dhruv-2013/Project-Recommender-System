@@ -31,18 +31,6 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
             </span>
           </button>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
-              Features
-            </a>
-            <a href="#how-it-works" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
-              How It Works
-            </a>
-            <a href="#about" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
-              About
-            </a>
-          </nav>
 
 
           {/* Mobile Menu Button */}
@@ -58,34 +46,6 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
           </button>
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border animate-fade-in">
-            <nav className="py-4 space-y-2">
-              <a 
-                href="#features" 
-                className="block px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Features
-              </a>
-              <a 
-                href="#how-it-works" 
-                className="block px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                How It Works
-              </a>
-              <a 
-                href="#about" 
-                className="block px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                About
-              </a>
-            </nav>
-          </div>
-        )}
       </div>
     </header>
   );
