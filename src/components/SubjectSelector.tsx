@@ -39,36 +39,8 @@ export function SubjectSelector({ userId, onSignOut, user, profile }: SubjectSel
     }
   };
 
-  const handleSubjectSelect = async (subjectCode: string, term: string) => {
-    try {
-      // Enroll user in the selected subject
-      const { error } = await supabase
-        .from("student_subjects")
-        .insert({
-          user_id: userId,
-          subject_code: subjectCode,
-          term: term
-        });
-
-      if (error) {
-        if (error.message?.includes("duplicate")) {
-          // Already enrolled, just navigate
-          navigate(`/subject/${subjectCode}`);
-          return;
-        }
-        throw error;
-      }
-
-      toast.success("Enrolled in subject successfully!");
-      navigate(`/subject/${subjectCode}`);
-    } catch (error: any) {
-      console.error("Error enrolling:", error);
-      if (error.message?.includes("maximum 3 subjects")) {
-        toast.error("You can only enroll in maximum 3 subjects per term");
-      } else {
-        toast.error(error.message || "Failed to enroll in subject");
-      }
-    }
+  const handleSubjectSelect = (subjectCode: string) => {
+    navigate(`/subject/${subjectCode}`);
   };
 
   if (loading) {
@@ -115,7 +87,7 @@ export function SubjectSelector({ userId, onSignOut, user, profile }: SubjectSel
                   <Card 
                     key={subject.code} 
                     className="cursor-pointer hover:border-primary/50 transition-all hover:shadow-lg"
-                    onClick={() => handleSubjectSelect(subject.code, "2025-T2")}
+                    onClick={() => handleSubjectSelect(subject.code)}
                   >
                     <CardHeader>
                       <div className="flex items-center gap-2 mb-2">
@@ -144,7 +116,7 @@ export function SubjectSelector({ userId, onSignOut, user, profile }: SubjectSel
                   <Card 
                     key={subject.code} 
                     className="cursor-pointer hover:border-primary/50 transition-all hover:shadow-lg"
-                    onClick={() => handleSubjectSelect(subject.code, "2025-T3")}
+                    onClick={() => handleSubjectSelect(subject.code)}
                   >
                     <CardHeader>
                       <div className="flex items-center gap-2 mb-2">
