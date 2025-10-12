@@ -44,37 +44,6 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
             </a>
           </nav>
 
-          {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-4">
-            {user ? (
-              <div className="flex items-center gap-3">
-                {profile?.role === 'admin' && (
-                  <Button variant="ghost" size="sm" onClick={() => navigate('/admin')}>
-                    Admin
-                  </Button>
-                )}
-                <div className="flex items-center gap-2 text-sm text-white">
-                  <User className="w-4 h-4" />
-                  <span>
-                    {profile?.full_name || user.email}
-                  </span>
-                </div>
-                <Button variant="ghost" size="sm" onClick={onSignOut} className="text-white hover:bg-white/10">
-                  <LogOut className="w-4 h-4 mr-1" />
-                  Sign Out
-                </Button>
-              </div>
-            ) : (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/auth')} className="text-white/70 hover:text-white hover:bg-white/10">
-                  Sign In
-                </Button>
-                <Button size="sm" onClick={() => navigate('/auth')} className="bg-white/10 text-white border border-white/20 hover:bg-white/20">
-                  Get Started
-                </Button>
-              </>
-            )}
-          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -114,29 +83,6 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
               >
                 About
               </a>
-              <div className="flex flex-col gap-2 px-4 pt-4 border-t border-border">
-                {user ? (
-                  <>
-                    <div className="flex items-center gap-2 px-2 py-1 text-sm text-muted-foreground">
-                      <User className="w-4 h-4" />
-                      <span>{user.user_metadata?.full_name || user.email}</span>
-                    </div>
-                    <Button variant="ghost" size="sm" className="justify-start" onClick={onSignOut}>
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sign Out
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="ghost" size="sm" className="justify-start">
-                      Sign In
-                    </Button>
-                    <Button variant="gradient" size="sm">
-                      Get Started
-                    </Button>
-                  </>
-                )}
-              </div>
             </nav>
           </div>
         )}
