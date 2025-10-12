@@ -83,11 +83,10 @@ export function SubjectSelector({ userId, onSignOut }: SubjectSelectorProps) {
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8">
           <Button
-            variant="outline"
             onClick={onSignOut}
-            className="!text-white !border-white/20 hover:!bg-white/10 flex items-center gap-2"
+            className="bg-white text-primary hover:bg-white/90 flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Welcome
