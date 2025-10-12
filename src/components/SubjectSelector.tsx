@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { BookOpen, Plus, X } from "lucide-react";
+import { BookOpen, Plus, X, ArrowLeft } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -122,6 +122,15 @@ export function SubjectSelector({ userId }: SubjectSelectorProps) {
 
   return (
     <div className="space-y-6">
+      <Button 
+        variant="ghost" 
+        onClick={() => navigate("/")}
+        className="mb-4"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Home
+      </Button>
+      
       <Card>
         <CardHeader>
           <CardTitle>My Subjects</CardTitle>
