@@ -83,20 +83,31 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
+      // Get user's profile to check role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .single();
+
       toast({
         title: "Welcome back!",
         description: "You have been signed in successfully.",
       });
 
-      // Always navigate to role selection page
-      navigate("/role-selection");
+      // Navigate based on role
+      if (profile?.role === 'admin') {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       toast({
         title: "Error",
