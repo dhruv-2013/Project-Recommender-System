@@ -38,7 +38,7 @@ const CreateTestUsers = () => {
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-2">Create Test Users</h1>
-          <p className="text-muted-foreground">Generate 10 students and 10 admin accounts for testing</p>
+          <p className="text-muted-foreground">Generate 10 students (enrolled in SENG2011) and 10 admin accounts for testing</p>
         </div>
 
         <Card>
@@ -46,6 +46,7 @@ const CreateTestUsers = () => {
             <CardTitle>Batch User Creation</CardTitle>
             <CardDescription>
               This will create 20 test accounts (10 students + 10 admins) with complete profiles.
+              Students will be enrolled in SENG2011 with skills for partner matching.
               All accounts use password: <code className="bg-muted px-2 py-1 rounded">Test123!</code>
             </CardDescription>
           </CardHeader>

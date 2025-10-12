@@ -89,6 +89,26 @@ Deno.serve(async (req) => {
             interests: student.interests,
           });
 
+        // Enroll in SENG2011
+        await supabaseAdmin
+          .from('student_subjects')
+          .insert({
+            user_id: authData.user.id,
+            subject_code: 'SENG2011',
+            term: '2025-T2'
+          });
+
+        // Add user skills
+        for (const skill of student.skills) {
+          await supabaseAdmin
+            .from('user_skills')
+            .insert({
+              user_id: authData.user.id,
+              skill_name: skill,
+              level: Math.floor(Math.random() * 3) + 3 // Random level between 3-5
+            });
+        }
+
         results.students.push({ email: student.email, created: true });
       } catch (error) {
         results.errors.push({ email: student.email, error: error.message });
