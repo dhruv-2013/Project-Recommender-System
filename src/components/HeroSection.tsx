@@ -5,9 +5,11 @@ import RaycastBackground from "./RaycastBackground";
 
 interface HeroSectionProps {
   onGetStarted?: () => void;
+  isLoggedIn?: boolean;
+  userRole?: string;
 }
 
-const HeroSection = ({ onGetStarted }: HeroSectionProps) => {
+const HeroSection = ({ onGetStarted, isLoggedIn = false, userRole }: HeroSectionProps) => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Content */}
@@ -29,18 +31,22 @@ const HeroSection = ({ onGetStarted }: HeroSectionProps) => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Button 
-              variant="hero" 
-              size="lg" 
-              className="px-8 py-4 text-lg"
-              onClick={onGetStarted}
-            >
-              Get Started
-              <ArrowRight className="ml-2" />
-            </Button>
-            <Button variant="outline" size="lg" className="px-8 py-4 text-lg">
-              View Demo
-            </Button>
+            {!isLoggedIn && (
+              <>
+                <Button 
+                  variant="hero" 
+                  size="lg" 
+                  className="px-8 py-4 text-lg"
+                  onClick={onGetStarted}
+                >
+                  Get Started
+                  <ArrowRight className="ml-2" />
+                </Button>
+                <Button variant="outline" size="lg" className="px-8 py-4 text-lg">
+                  View Demo
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Feature Highlights */}

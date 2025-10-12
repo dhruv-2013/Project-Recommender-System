@@ -182,7 +182,18 @@ const Index = () => {
       <div className="min-h-screen">
         <Header user={user} profile={profile} onSignOut={handleSignOut} />
         <main className="pt-16">
-          <HeroSection onGetStarted={() => navigate('/admin')} />
+          <HeroSection isLoggedIn={true} userRole="admin" />
+          <div className="container mx-auto px-4 py-16 text-center">
+            <div className="max-w-2xl mx-auto">
+              <Button 
+                onClick={() => navigate('/admin')}
+                size="lg"
+                className="bg-white/10 text-white border border-white/20 hover:bg-white/20 text-lg px-8 py-3"
+              >
+                Go to Admin Dashboard
+              </Button>
+            </div>
+          </div>
         </main>
       </div>
     );
