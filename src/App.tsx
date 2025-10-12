@@ -9,7 +9,6 @@ import Admin from "./pages/Admin";
 import Teams from "./pages/Teams";
 import Subject from "./pages/Subject";
 import Profile from "./pages/Profile";
-import RoleSelection from "./pages/RoleSelection";
 import CreateTestUsers from "./pages/CreateTestUsers";
 import NotFound from "./pages/NotFound";
 import RaycastBackground from "./components/RaycastBackground";
@@ -28,7 +27,6 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/role-selection" element={<RoleSelection />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/teams" element={<Teams />} />
               <Route path="/profile" element={<Profile />} />
