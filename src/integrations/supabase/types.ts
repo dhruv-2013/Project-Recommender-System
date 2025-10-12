@@ -373,6 +373,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          term: string | null
         }
         Insert: {
           code: string
@@ -380,6 +381,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          term?: string | null
         }
         Update: {
           code?: string
@@ -387,6 +389,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          term?: string | null
         }
         Relationships: []
       }

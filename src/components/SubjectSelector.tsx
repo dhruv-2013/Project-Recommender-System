@@ -76,9 +76,9 @@ export function SubjectSelector({ userId, onSignOut }: SubjectSelectorProps) {
     );
   }
 
-  // Group subjects by term (assuming we have 3 subjects for T2 and 3 for T3)
-  const t2Subjects = subjects.slice(0, 3);
-  const t3Subjects = subjects.slice(3, 6);
+  // Filter subjects by term
+  const t2Subjects = subjects.filter(s => s.term === "2025-T2");
+  const t3Subjects = subjects.filter(s => s.term === "2025-T3");
 
   return (
     <div className="min-h-screen p-6">
