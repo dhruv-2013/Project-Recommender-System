@@ -68,9 +68,9 @@ const Index = () => {
 
       setProfile(userProfile);
 
-      // Redirect admins to admin dashboard
-      if (userProfile.role === 'admin') {
-        navigate('/admin');
+      // Redirect admins to admin dashboard - only if not already there
+      if (userProfile.role === 'admin' && window.location.pathname !== '/admin') {
+        navigate('/admin', { replace: true });
         return;
       }
 
