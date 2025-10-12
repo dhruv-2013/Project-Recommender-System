@@ -7,16 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Brain, Users, Target, GraduationCap, Shield } from "lucide-react";
+import { Loader2, Brain, Users, Target } from "lucide-react";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const roleFromUrl = searchParams.get('role') as 'student' | 'admin' | null;
-  const [selectedRole, setSelectedRole] = useState<'student' | 'admin' | null>(roleFromUrl);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -29,12 +28,7 @@ const Auth = () => {
       }
     };
     checkUser();
-    
-    // Set selected role from URL if present
-    if (roleFromUrl) {
-      setSelectedRole(roleFromUrl);
-    }
-  }, [navigate, roleFromUrl]);
+  }, [navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,10 +50,10 @@ const Auth = () => {
       if (error) throw error;
 
       // Update profile with role after signup
-      if (selectedRole && data.user) {
+      if (roleFromUrl && data.user) {
         await supabase
           .from('profiles')
-          .update({ role: selectedRole })
+          .update({ role: roleFromUrl })
           .eq('user_id', data.user.id);
       }
 
@@ -83,30 +77,41 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error, data } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
-      // Get user's profile to check role
+      // Check if user has a role assigned
+      const { data: { user } } = await supabase.auth.getUser();
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
-        .eq('user_id', data.user.id)
-        .single();
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      // If role is specified in URL, update profile role
+      if (roleFromUrl && user) {
+        await supabase
+          .from('profiles')
+          .update({ role: roleFromUrl })
+          .eq('user_id', user.id);
+      }
 
       toast({
         title: "Welcome back!",
         description: "You have been signed in successfully.",
       });
 
-      // Navigate based on role
-      if (profile?.role === 'admin') {
+      const finalRole = roleFromUrl || profile?.role;
+      if (finalRole === 'admin') {
         navigate("/admin");
-      } else {
+      } else if (finalRole === 'student') {
         navigate("/");
+      } else {
+        navigate("/role-selection");
       }
     } catch (error: any) {
       toast({
@@ -119,81 +124,16 @@ const Auth = () => {
     }
   };
 
-  // Show role selection if no role is selected
-  if (!selectedRole) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate('/')}
-            className="mb-4"
-          >
-            ← Back to Home
-          </Button>
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <div className="relative">
-                <Brain className="h-8 w-8 text-primary animate-pulse" />
-                <div className="absolute -top-1 -right-1 h-3 w-3 bg-accent rounded-full animate-ping" />
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              ProjectMatch
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              AI-powered project recommendations for students
-            </p>
-          </div>
-
-          <Card className="shadow-lg border-muted/20 backdrop-blur-sm bg-background/80">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl text-center">Choose Your Role</CardTitle>
-              <CardDescription className="text-center">
-                Select how you'd like to access ProjectMatch
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                variant="outline"
-                className="w-full h-24 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 transition-all"
-                onClick={() => setSelectedRole('student')}
-              >
-                <GraduationCap className="h-8 w-8 text-primary" />
-                <div className="text-center">
-                  <div className="font-semibold">Student Access</div>
-                  <div className="text-xs text-muted-foreground">Find projects and build teams</div>
-                </div>
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full h-24 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 transition-all"
-                onClick={() => setSelectedRole('admin')}
-              >
-                <Shield className="h-8 w-8 text-primary" />
-                <div className="text-center">
-                  <div className="font-semibold">Admin Access</div>
-                  <div className="text-xs text-muted-foreground">Manage projects and students</div>
-                </div>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Button 
           variant="ghost" 
           size="sm"
-          onClick={() => setSelectedRole(null)}
+          onClick={() => navigate('/')}
           className="mb-4"
         >
-          ← Back to Role Selection
+          ← Back to Home
         </Button>
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -213,7 +153,7 @@ const Auth = () => {
         <Card className="shadow-lg border-muted/20 backdrop-blur-sm bg-background/80">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">
-              {selectedRole === 'admin' ? '👨‍💼 Admin' : '🎓 Student'} Access
+              {roleFromUrl === 'admin' ? '👨‍💼 Admin' : '🎓 Student'} Access
             </CardTitle>
             <CardDescription className="text-center">
               Sign in to your account or create a new one

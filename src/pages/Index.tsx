@@ -62,19 +62,13 @@ const Index = () => {
         .maybeSingle();
 
       if (!userProfile || !userProfile.role) {
-        navigate('/auth');
+        navigate('/role-selection');
         return;
       }
 
       setProfile(userProfile);
 
-      // Redirect admins to admin dashboard - only if not already there
-      if (userProfile.role === 'admin' && window.location.pathname !== '/admin') {
-        navigate('/admin', { replace: true });
-        return;
-      }
-
-      // Fetch student profile for students only
+      // Fetch student profile for students (skip for admins)
       if (userProfile.role === 'student') {
         const { data: studentProfile, error } = await supabase
           .from('student_profiles')
@@ -181,7 +175,32 @@ const Index = () => {
     );
   }
 
-  // Student view only - admins are redirected to /admin
+  // Show different content for admins
+  if (profile?.role === 'admin') {
+    return (
+      <div className="min-h-screen">
+        <Header user={user} profile={profile} onSignOut={handleSignOut} />
+        <main className="pt-16">
+          <div className="container mx-auto px-4 py-16 text-center">
+            <div className="max-w-2xl mx-auto space-y-6">
+              <h2 className="text-3xl font-bold text-white">Welcome, Admin!</h2>
+              <p className="text-white/70 text-lg">
+                Manage your projects, applications, and team approvals from the Admin Dashboard.
+              </p>
+              <Button 
+                onClick={() => navigate('/admin')}
+                size="lg"
+                className="bg-white/10 text-white border border-white/20 hover:bg-white/20 text-lg px-8 py-3"
+              >
+                Go to Admin Dashboard
+              </Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <Header user={user} profile={profile} onSignOut={handleSignOut} />
