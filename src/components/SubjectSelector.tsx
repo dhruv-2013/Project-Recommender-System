@@ -81,21 +81,23 @@ export function SubjectSelector({ userId, onSignOut }: SubjectSelectorProps) {
   const t3Subjects = subjects.filter(s => s.term === "2025-T3");
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
+    <div className="min-h-screen p-6 flex flex-col">
+      <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col">
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between mb-8">
           <Button
             onClick={onSignOut}
-            className="bg-white text-primary hover:bg-white/90 flex items-center gap-2"
+            className="bg-white text-primary hover:bg-white/90 flex items-center gap-2 px-6 py-2"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-5 w-5" />
             Back to Welcome
           </Button>
         </div>
 
+        {/* Page Title */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">Select Your Subject</h1>
-          <p className="text-white/70 text-lg">Choose a subject to view available projects</p>
+          <h1 className="text-5xl font-bold text-white mb-4">Select Your Subject</h1>
+          <p className="text-white/80 text-xl">Choose a subject to view available projects</p>
         </div>
 
         <div className="space-y-12">
