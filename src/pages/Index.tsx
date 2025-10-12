@@ -176,15 +176,16 @@ const Index = () => {
     );
   }
 
-  // Show different content for admins
+  // Show hero section for admins too
   if (profile?.role === 'admin') {
     return (
       <div className="min-h-screen">
         <Header user={user} profile={profile} onSignOut={handleSignOut} />
         <main className="pt-16">
+          <HeroSection onGetStarted={() => navigate('/admin')} />
           <div className="container mx-auto px-4 py-16 text-center">
             <div className="max-w-2xl mx-auto space-y-6">
-              <h2 className="text-3xl font-bold text-white">Welcome, Admin!</h2>
+              <h2 className="text-3xl font-bold text-white">Admin Portal</h2>
               <p className="text-white/70 text-lg">
                 Manage your projects, applications, and team approvals from the Admin Dashboard.
               </p>
