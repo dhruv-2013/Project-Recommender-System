@@ -223,11 +223,11 @@ const Index = () => {
           <div className="container mx-auto px-4 py-8">
             <Button
               variant="ghost"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              onClick={handleSignOut}
               className="mb-4 !text-white hover:!text-white hover:!bg-white/10 flex items-center gap-2"
             >
-              <Home className="h-4 w-4" />
-              Back to Top
+              <ArrowLeft className="h-4 w-4" />
+              Back to Welcome Page
             </Button>
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-1">
