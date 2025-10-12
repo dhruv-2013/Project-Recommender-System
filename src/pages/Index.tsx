@@ -219,26 +219,7 @@ const Index = () => {
           <StudentProfileForm onProfileCreated={handleProfileCreated} />
         </main>
       ) : (
-        <main className="pt-16">
-          <div className="container mx-auto px-4 py-8">
-            <Button
-              variant="ghost"
-              onClick={handleSignOut}
-              className="mb-4 !text-white hover:!text-white hover:!bg-white/10 flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Welcome Page
-            </Button>
-            <div className="grid lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1">
-                <SubjectSelector userId={user.id} />
-              </div>
-              <div className="lg:col-span-2">
-                <ProjectRecommendations userId={user.id} studentProfile={studentProfile} />
-              </div>
-            </div>
-          </div>
-        </main>
+        <SubjectSelector userId={user.id} onSignOut={handleSignOut} />
       )}
     </div>
   );
