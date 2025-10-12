@@ -219,7 +219,7 @@ const Index = () => {
           <StudentProfileForm onProfileCreated={handleProfileCreated} />
         </main>
       ) : (
-        <SubjectSelector userId={user.id} onSignOut={handleSignOut} />
+        <SubjectSelector userId={user.id} onSignOut={handleSignOut} user={user} profile={profile} />
       )}
     </div>
   );
