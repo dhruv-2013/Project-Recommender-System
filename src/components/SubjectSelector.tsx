@@ -83,11 +83,12 @@ export function SubjectSelector({ userId, onSignOut }: SubjectSelectorProps) {
   return (
     <div className="min-h-screen p-6 flex flex-col">
       <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col">
-        {/* Header with Back Button */}
-        <div className="flex items-center justify-between mb-8">
+        {/* Header with Back Button in Top Right */}
+        <div className="flex items-center justify-end mb-8">
           <Button
             onClick={onSignOut}
-            className="bg-white text-primary hover:bg-white/90 flex items-center gap-2 px-6 py-2"
+            size="lg"
+            className="bg-white text-primary hover:bg-white/90 flex items-center gap-2 px-8 py-3 font-semibold shadow-lg"
           >
             <ArrowLeft className="h-5 w-5" />
             Back to Welcome
