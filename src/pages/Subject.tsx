@@ -73,9 +73,9 @@ export default function Subject() {
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="mb-4 text-white hover:text-white hover:bg-white/10"
+            className="mb-4 !text-white hover:!text-white hover:!bg-white/10 flex items-center gap-2"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" />
             Back to Home
           </Button>
           
