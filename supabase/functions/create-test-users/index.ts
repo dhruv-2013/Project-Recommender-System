@@ -22,18 +22,68 @@ Deno.serve(async (req) => {
       }
     );
 
-    const students = [
-      { email: 'alice.student@test.com', name: 'Alice Johnson', field: 'Computer Science', level: 'Undergraduate', skills: ['Python', 'JavaScript', 'React'], interests: ['Web Development', 'AI'] },
-      { email: 'bob.student@test.com', name: 'Bob Smith', field: 'Data Science', level: 'Graduate', skills: ['Python', 'R', 'Machine Learning'], interests: ['Data Analysis', 'Statistics'] },
-      { email: 'charlie.student@test.com', name: 'Charlie Brown', field: 'Software Engineering', level: 'Undergraduate', skills: ['Java', 'C++', 'SQL'], interests: ['Backend Development', 'Databases'] },
-      { email: 'diana.student@test.com', name: 'Diana Prince', field: 'Information Systems', level: 'Graduate', skills: ['JavaScript', 'Node.js', 'MongoDB'], interests: ['Full Stack', 'Cloud Computing'] },
-      { email: 'eve.student@test.com', name: 'Eve Williams', field: 'Cybersecurity', level: 'Undergraduate', skills: ['Python', 'Linux', 'Network Security'], interests: ['Ethical Hacking', 'Security'] },
-      { email: 'frank.student@test.com', name: 'Frank Miller', field: 'Game Development', level: 'Graduate', skills: ['C#', 'Unity', '3D Modeling'], interests: ['Game Design', 'VR'] },
-      { email: 'grace.student@test.com', name: 'Grace Lee', field: 'Mobile Development', level: 'Undergraduate', skills: ['Swift', 'Kotlin', 'React Native'], interests: ['iOS', 'Android'] },
-      { email: 'henry.student@test.com', name: 'Henry Davis', field: 'AI & ML', level: 'Graduate', skills: ['Python', 'TensorFlow', 'PyTorch'], interests: ['Deep Learning', 'NLP'] },
-      { email: 'iris.student@test.com', name: 'Iris Chen', field: 'UI/UX Design', level: 'Undergraduate', skills: ['Figma', 'HTML', 'CSS'], interests: ['User Research', 'Design Systems'] },
-      { email: 'jack.student@test.com', name: 'Jack Wilson', field: 'DevOps', level: 'Graduate', skills: ['Docker', 'Kubernetes', 'AWS'], interests: ['CI/CD', 'Infrastructure'] }
+    // Generate 50 diverse students
+    const firstNames = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Henry', 'Iris', 'Jack', 
+                        'Kelly', 'Leo', 'Maya', 'Noah', 'Olivia', 'Peter', 'Quinn', 'Rachel', 'Sam', 'Tara',
+                        'Uma', 'Victor', 'Wendy', 'Xavier', 'Yara', 'Zoe', 'Aaron', 'Beth', 'Chris', 'Dana',
+                        'Ethan', 'Fiona', 'George', 'Hannah', 'Ian', 'Julia', 'Kevin', 'Laura', 'Mark', 'Nina',
+                        'Oscar', 'Paula', 'Quincy', 'Rita', 'Steve', 'Tina', 'Ulysses', 'Vera', 'Will', 'Xena'];
+    
+    const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez',
+                       'Wilson', 'Anderson', 'Taylor', 'Thomas', 'Moore', 'Jackson', 'Martin', 'Lee', 'Thompson', 'White',
+                       'Harris', 'Clark', 'Lewis', 'Walker', 'Hall', 'Allen', 'Young', 'King', 'Wright', 'Lopez',
+                       'Hill', 'Scott', 'Green', 'Adams', 'Baker', 'Nelson', 'Carter', 'Mitchell', 'Perez', 'Roberts',
+                       'Turner', 'Phillips', 'Campbell', 'Parker', 'Evans', 'Edwards', 'Collins', 'Stewart', 'Morris', 'Rogers'];
+    
+    const fields = ['Computer Science', 'Data Science', 'Software Engineering', 'Information Systems', 'Cybersecurity',
+                   'Game Development', 'Mobile Development', 'AI & ML', 'UI/UX Design', 'DevOps'];
+    
+    const levels = ['Undergraduate', 'Graduate'];
+    
+    const skillSets = [
+      ['Python', 'JavaScript', 'React', 'Node.js'],
+      ['Java', 'Spring Boot', 'SQL', 'PostgreSQL'],
+      ['C++', 'C#', 'Unity', 'Game Design'],
+      ['Python', 'TensorFlow', 'Machine Learning', 'Data Analysis'],
+      ['React', 'Vue.js', 'Angular', 'TypeScript'],
+      ['Docker', 'Kubernetes', 'AWS', 'CI/CD'],
+      ['Swift', 'Kotlin', 'React Native', 'Flutter'],
+      ['Python', 'R', 'Data Visualization', 'Statistics'],
+      ['HTML', 'CSS', 'Figma', 'Adobe XD'],
+      ['Linux', 'Network Security', 'Ethical Hacking', 'Penetration Testing'],
+      ['MongoDB', 'Redis', 'GraphQL', 'REST API'],
+      ['Go', 'Rust', 'System Programming', 'Performance Optimization'],
+      ['PHP', 'Laravel', 'MySQL', 'WordPress'],
+      ['Ruby', 'Ruby on Rails', 'PostgreSQL', 'Heroku'],
+      ['Scala', 'Apache Spark', 'Big Data', 'Hadoop']
     ];
+    
+    const interestSets = [
+      ['Web Development', 'AI', 'Cloud Computing'],
+      ['Mobile Apps', 'User Experience', 'Design'],
+      ['Data Science', 'Analytics', 'Visualization'],
+      ['Cybersecurity', 'Privacy', 'Blockchain'],
+      ['Game Development', 'VR', 'AR'],
+      ['Machine Learning', 'NLP', 'Computer Vision'],
+      ['DevOps', 'Infrastructure', 'Automation'],
+      ['Full Stack', 'Microservices', 'Scalability'],
+      ['IoT', 'Embedded Systems', 'Robotics'],
+      ['Fintech', 'E-commerce', 'SaaS']
+    ];
+
+    const students = [];
+    for (let i = 0; i < 50; i++) {
+      const firstName = firstNames[i % firstNames.length];
+      const lastName = lastNames[i % lastNames.length];
+      const name = `${firstName} ${lastName}`;
+      const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@test.com`;
+      const field = fields[Math.floor(Math.random() * fields.length)];
+      const level = levels[Math.floor(Math.random() * levels.length)];
+      const skills = skillSets[Math.floor(Math.random() * skillSets.length)];
+      const interests = interestSets[Math.floor(Math.random() * interestSets.length)];
+      
+      students.push({ email, name, field, level, skills, interests });
+    }
 
     const admins = [
       { email: 'admin1@test.com', name: 'Dr. Sarah Connor', field: 'Computer Science', level: 'PhD' },
