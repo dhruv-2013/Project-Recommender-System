@@ -67,9 +67,14 @@ const Admin = () => {
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
             <p className="text-muted-foreground">Manage projects, applications, and marks</p>
           </div>
-          <Button onClick={() => navigate('/')} variant="outline">
-            Back to Home
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate('/create-test-users')} variant="secondary">
+              Create Test Users
+            </Button>
+            <Button onClick={() => navigate('/')} variant="outline">
+              Back to Home
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="projects" className="space-y-6">
