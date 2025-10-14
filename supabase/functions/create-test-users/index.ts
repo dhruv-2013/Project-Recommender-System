@@ -139,12 +139,12 @@ Deno.serve(async (req) => {
             interests: student.interests,
           });
 
-        // Enroll in SENG2011
+        // Enroll in COMP3900
         await supabaseAdmin
           .from('student_subjects')
           .insert({
             user_id: authData.user.id,
-            subject_code: 'SENG2011',
+            subject_code: 'COMP3900',
             term: '2025-T2'
           });
 

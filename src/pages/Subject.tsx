@@ -90,7 +90,7 @@ export default function Subject() {
 
         <Tabs defaultValue="partners" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="partners">Suggest Partners</TabsTrigger>
+            <TabsTrigger value="partners">Partners</TabsTrigger>
             <TabsTrigger value="group">Make Group</TabsTrigger>
             <TabsTrigger value="projects">Project List</TabsTrigger>
           </TabsList>
