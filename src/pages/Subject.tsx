@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { PartnerSuggestions } from "@/components/subject/PartnerSuggestions";
 import { CreateGroup } from "@/components/subject/CreateGroup";
 import { ProjectList } from "@/components/subject/ProjectList";
+import { MyTeams } from "@/components/subject/MyTeams";
 
 export default function Subject() {
   const { subjectCode } = useParams<{ subjectCode: string }>();
@@ -15,41 +16,72 @@ export default function Subject() {
   const [loading, setLoading] = useState(true);
   const [subject, setSubject] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    checkAuth();
+  }, [subjectCode]);
+
+  const checkAuth = async () => {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      if (error) {
+        console.error("Auth error:", error);
+        navigate("/auth");
+        return;
+      }
+
       if (!user) {
         navigate("/auth");
         return;
       }
+
       setUser(user);
       await fetchSubject();
+    } catch (error) {
+      console.error("Error in checkAuth:", error);
+      toast.error("Authentication error");
+      navigate("/auth");
+    } finally {
       setLoading(false);
-    };
-
-    checkAuth();
-  }, [subjectCode, navigate]);
+    }
+  };
 
   const fetchSubject = async () => {
-    const { data, error } = await supabase
-      .from("subjects")
-      .select("*")
-      .eq("code", subjectCode)
-      .single();
+    try {
+      if (!subjectCode) {
+        toast.error("No subject code provided");
+        navigate("/");
+        return;
+      }
 
-    if (error) {
-      console.error("Error fetching subject:", error);
+      const { data, error } = await supabase
+        .from("subjects")
+        .select("*")
+        .eq("code", subjectCode)
+        .single();
+
+      if (error) {
+        console.error("Error fetching subject:", error);
+        toast.error("Failed to load subject");
+        return;
+      }
+
+      setSubject(data);
+    } catch (error) {
+      console.error("Error in fetchSubject:", error);
       toast.error("Failed to load subject");
-      return;
     }
+  };
 
-    setSubject(data);
+  const handleTeamUpdate = () => {
+    setRefreshKey(prev => prev + 1);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -57,7 +89,7 @@ export default function Subject() {
 
   if (!subject) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Subject not found</h2>
           <Button onClick={() => navigate("/")}>Go back home</Button>
@@ -66,8 +98,19 @@ export default function Subject() {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Please sign in</h2>
+          <Button onClick={() => navigate("/auth")}>Go to Sign In</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <Button
@@ -89,22 +132,43 @@ export default function Subject() {
         </div>
 
         <Tabs defaultValue="partners" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="partners">Partners</TabsTrigger>
             <TabsTrigger value="group">Make Group</TabsTrigger>
+            <TabsTrigger value="myteams">My Teams</TabsTrigger>
             <TabsTrigger value="projects">Project List</TabsTrigger>
           </TabsList>
 
           <TabsContent value="partners">
-            <PartnerSuggestions subjectCode={subjectCode!} userId={user?.id} />
+            <PartnerSuggestions 
+              key={`partners-${refreshKey}`}
+              subjectCode={subjectCode!} 
+              userId={user.id} 
+              onPartnerAdded={handleTeamUpdate}
+            />
           </TabsContent>
 
           <TabsContent value="group">
-            <CreateGroup subjectCode={subjectCode!} userId={user?.id} />
+            <CreateGroup 
+              subjectCode={subjectCode!} 
+              userId={user.id} 
+              onTeamCreated={handleTeamUpdate} 
+            />
+          </TabsContent>
+
+          <TabsContent value="myteams">
+            <MyTeams 
+              key={`myteams-${refreshKey}`} 
+              userId={user.id} 
+              onTeamUpdated={handleTeamUpdate} 
+            />
           </TabsContent>
 
           <TabsContent value="projects">
-            <ProjectList subjectCode={subjectCode!} userId={user?.id} />
+            <ProjectList 
+              subjectCode={subjectCode!} 
+              userId={user.id} 
+            />
           </TabsContent>
         </Tabs>
       </div>

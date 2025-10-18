@@ -50,12 +50,11 @@ export function TeamDetails({ subjectCode, userId }: TeamDetailsProps) {
             // Fetch all team members
             const { data: membersData, error: membersError } = await supabase
               .from("team_members")
-              .select("*")
+              .select("user_id, role, joined_at")
               .eq("team_id", teamId);
 
             console.log("Team ID:", teamId);
             console.log("Members data for team:", membersData);
-            console.log("Members error:", membersError);
 
             if (membersError) {
               console.error("Error fetching team members:", membersError);
@@ -67,7 +66,7 @@ export function TeamDetails({ subjectCode, userId }: TeamDetailsProps) {
               (membersData || []).map(async (member) => {
                 const { data: profile } = await supabase
                   .from("profiles")
-                  .select("full_name, email, field_of_study")
+                  .select("user_id, full_name, email, field_of_study")
                   .eq("user_id", member.user_id)
                   .maybeSingle();
                 
@@ -77,8 +76,13 @@ export function TeamDetails({ subjectCode, userId }: TeamDetailsProps) {
                   .select("skill_name, level")
                   .eq("user_id", member.user_id);
                 
+                console.log(`Skills for ${profile?.full_name}:`, skills);
+                
                 return {
-                  ...member,
+                  id: member.user_id,
+                  user_id: member.user_id,
+                  role: member.role,
+                  joined_at: member.joined_at,
                   profiles: profile,
                   skills: skills || [],
                 };
@@ -96,12 +100,16 @@ export function TeamDetails({ subjectCode, userId }: TeamDetailsProps) {
               });
             });
 
+            const skillsArray = Array.from(uniqueSkills);
+
             const strength = {
               memberCount,
-              skillCount: uniqueSkills.size || 0,
-              skills: Array.from(uniqueSkills),
+              skillCount: skillsArray.length || 0,
+              skills: skillsArray,
               completeness: Math.min(100, (memberCount / 4) * 100),
             };
+
+            console.log("Team strength calculated:", strength);
 
             return {
               ...teamMember.teams,
@@ -114,6 +122,8 @@ export function TeamDetails({ subjectCode, userId }: TeamDetailsProps) {
         const validTeams = teamsWithDetails.filter(Boolean);
         console.log("Final teams with details:", validTeams);
         setTeams(validTeams);
+      } else {
+        setTeams([]);
       }
     } catch (error: any) {
       console.error("Error fetching teams:", error);
@@ -122,6 +132,14 @@ export function TeamDetails({ subjectCode, userId }: TeamDetailsProps) {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!teams || teams.length === 0) {
     return (
@@ -167,20 +185,26 @@ export function TeamDetails({ subjectCode, userId }: TeamDetailsProps) {
                   <div className="text-xs text-muted-foreground">Skills</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">{team.strength.completeness}%</div>
+                  <div className="text-2xl font-bold text-primary">{Math.round(team.strength.completeness)}%</div>
                   <div className="text-xs text-muted-foreground">Complete</div>
                 </div>
               </div>
-              <div>
-                <div className="text-xs font-medium mb-2">Skillset:</div>
-                <div className="flex flex-wrap gap-1">
-                  {team.strength.skills.map((skill: string) => (
-                    <Badge key={skill} variant="secondary" className="text-xs">
-                      {skill}
-                    </Badge>
-                  ))}
+              {team.strength.skills.length > 0 ? (
+                <div>
+                  <div className="text-xs font-medium mb-2">Team Skillset:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {team.strength.skills.map((skill: string) => (
+                      <Badge key={skill} variant="secondary" className="text-xs">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="text-xs text-muted-foreground italic">
+                  No skills added yet. Team members should add their skills to their profiles.
+                </div>
+              )}
             </div>
 
             {/* Team Members */}
@@ -193,18 +217,25 @@ export function TeamDetails({ subjectCode, userId }: TeamDetailsProps) {
                       <div>
                         <p className="font-medium text-sm">{member.profiles?.full_name || "Unknown"}</p>
                         <p className="text-xs text-muted-foreground">{member.profiles?.email}</p>
+                        {member.profiles?.field_of_study && (
+                          <p className="text-xs text-muted-foreground">{member.profiles.field_of_study}</p>
+                        )}
                       </div>
                       {member.role === "creator" && (
                         <Badge variant="default" className="text-xs">Creator</Badge>
                       )}
                     </div>
-                    {member.skills && member.skills.length > 0 && (
+                    {member.skills && member.skills.length > 0 ? (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {member.skills.map((skill: any) => (
                           <Badge key={skill.skill_name} variant="outline" className="text-xs">
-                            {skill.skill_name}
+                            {skill.skill_name} {skill.level && `(L${skill.level})`}
                           </Badge>
                         ))}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground italic mt-2">
+                        No skills added yet
                       </div>
                     )}
                   </div>

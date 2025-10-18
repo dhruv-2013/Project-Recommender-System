@@ -51,6 +51,15 @@ const Admin = () => {
     checkUser();
   }, [navigate, toast]);
 
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -71,8 +80,8 @@ const Admin = () => {
             <Button onClick={() => navigate('/create-test-users')} variant="secondary">
               Create Test Users
             </Button>
-            <Button onClick={() => navigate('/')} variant="outline">
-              Back to Home
+            <Button onClick={handleSignOut} variant="outline">
+              Sign Out
             </Button>
           </div>
         </div>

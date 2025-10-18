@@ -12,9 +12,10 @@ import { Users } from "lucide-react";
 interface CreateGroupProps {
   subjectCode: string;
   userId: string;
+  onTeamCreated?: () => void;
 }
 
-export function CreateGroup({ subjectCode, userId }: CreateGroupProps) {
+export function CreateGroup({ subjectCode, userId, onTeamCreated }: CreateGroupProps) {
   const navigate = useNavigate();
   const [teamName, setTeamName] = useState("");
   const [description, setDescription] = useState("");
@@ -56,7 +57,13 @@ export function CreateGroup({ subjectCode, userId }: CreateGroupProps) {
       if (memberError) throw memberError;
 
       toast.success("Team created successfully!");
-      navigate("/teams");
+      
+      // Reset form
+      setTeamName("");
+      setDescription("");
+      
+      // Notify parent to refresh
+      onTeamCreated?.();
     } catch (error: any) {
       console.error("Error creating team:", error);
       toast.error(error.message || "Failed to create team");
@@ -70,7 +77,7 @@ export function CreateGroup({ subjectCode, userId }: CreateGroupProps) {
       <CardHeader>
         <CardTitle>Create a Team</CardTitle>
         <CardDescription>
-          Form a team for {subjectCode} and invite other students
+          Form a team for {subjectCode} and add students from the Partners tab
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -103,7 +110,8 @@ export function CreateGroup({ subjectCode, userId }: CreateGroupProps) {
               <div className="text-sm">
                 <p className="font-medium mb-1">Next Steps:</p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                  <li>After creating your team, you can invite members</li>
+                  <li>After creating your team, go to "My Teams" tab to view it</li>
+                  <li>Go to "Partners" tab to add students directly to your team</li>
                   <li>Apply for projects as a team</li>
                   <li>Collaborate with your teammates</li>
                 </ul>

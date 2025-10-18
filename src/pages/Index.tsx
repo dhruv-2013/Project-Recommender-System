@@ -69,7 +69,13 @@ const Index = () => {
 
       setProfile(userProfile);
 
-      // Fetch student profile for students (skip for admins)
+      // If admin, redirect to admin dashboard immediately
+      if (userProfile.role === 'admin') {
+        navigate('/admin');
+        return;
+      }
+
+      // Fetch student profile for students only
       if (userProfile.role === 'student') {
         const { data: studentProfile, error } = await supabase
           .from('student_profiles')
@@ -176,25 +182,15 @@ const Index = () => {
     );
   }
 
-  // Show hero section for admins
+  // Admin users should not see this page - they get redirected in checkUserRoleAndProfile
+  // This is just a fallback in case the redirect hasn't happened yet
   if (profile?.role === 'admin') {
     return (
-      <div className="min-h-screen">
-        <Header user={user} profile={profile} onSignOut={handleSignOut} />
-        <main className="pt-16">
-          <HeroSection isLoggedIn={true} userRole="admin" />
-          <div className="container mx-auto px-4 py-16 text-center">
-            <div className="max-w-2xl mx-auto">
-              <Button 
-                onClick={() => navigate('/admin')}
-                size="lg"
-                className="bg-white/10 text-white border border-white/20 hover:bg-white/20 text-lg px-8 py-3"
-              >
-                Go to Admin Dashboard
-              </Button>
-            </div>
-          </div>
-        </main>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-400" />
+          <p className="text-white/70">Redirecting to Admin Dashboard...</p>
+        </div>
       </div>
     );
   }

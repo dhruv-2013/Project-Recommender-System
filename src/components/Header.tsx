@@ -31,7 +31,29 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
             </span>
           </button>
 
-
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-4">
+            {user && profile?.role === 'admin' && (
+              <Button 
+                onClick={() => navigate('/admin')} 
+                variant="ghost"
+                className="text-foreground hover:text-foreground/80"
+              >
+                Admin Dashboard
+              </Button>
+            )}
+            {user && (
+              <>
+                <span className="text-sm text-muted-foreground">
+                  {user.email}
+                </span>
+                <Button onClick={onSignOut} variant="outline" size="sm">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </>
+            )}
+          </div>
 
           {/* Mobile Menu Button */}
           <button
