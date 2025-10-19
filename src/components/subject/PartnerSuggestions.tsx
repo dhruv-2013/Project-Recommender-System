@@ -20,6 +20,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface PartnerSuggestionsProps {
   subjectCode: string;
   userId: string;
+  selectedPartners?: any[];
+  onAddPartner?: (partner: any) => void;
+  onRemovePartner?: (partnerId: string) => void;
   onPartnerAdded?: () => void;
 }
 
@@ -60,7 +63,7 @@ const generateMockStudents = (count: number = 25) => {
   });
 };
 
-export function PartnerSuggestions({ subjectCode, userId, onPartnerAdded }: PartnerSuggestionsProps) {
+export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [], onAddPartner, onRemovePartner, onPartnerAdded }: PartnerSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [mySkills, setMySkills] = useState<string[]>([]);

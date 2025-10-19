@@ -6,16 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Users } from "lucide-react";
+import { Users, X } from "lucide-react";
 
 interface CreateGroupProps {
   subjectCode: string;
   userId: string;
+  selectedPartners?: any[];
+  onRemovePartner?: (partnerId: string) => void;
   onTeamCreated?: () => void;
 }
 
-export function CreateGroup({ subjectCode, userId, onTeamCreated }: CreateGroupProps) {
+export function CreateGroup({ subjectCode, userId, selectedPartners = [], onRemovePartner, onTeamCreated }: CreateGroupProps) {
   const navigate = useNavigate();
   const [teamName, setTeamName] = useState("");
   const [description, setDescription] = useState("");
@@ -55,6 +58,21 @@ export function CreateGroup({ subjectCode, userId, onTeamCreated }: CreateGroupP
         });
 
       if (memberError) throw memberError;
+
+      // Add selected partners as team members
+      if (selectedPartners.length > 0) {
+        const memberInserts = selectedPartners.map(partner => ({
+          team_id: team.id,
+          user_id: partner.user_id,
+          role: "member",
+        }));
+
+        const { error: partnersError } = await supabase
+          .from("team_members")
+          .insert(memberInserts);
+
+        if (partnersError) throw partnersError;
+      }
 
       toast.success("Team created successfully!");
       
@@ -104,17 +122,56 @@ export function CreateGroup({ subjectCode, userId, onTeamCreated }: CreateGroupP
             />
           </div>
 
+          {selectedPartners.length > 0 && (
+            <div className="space-y-2">
+              <Label>Selected Team Members ({selectedPartners.length})</Label>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {selectedPartners.map((partner) => (
+                  <div key={partner.user_id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex-1">
+                      <div className="font-medium">
+                        {partner.profiles?.full_name || "Anonymous"}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {partner.profiles?.email}
+                      </div>
+                      {partner.skills && partner.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {partner.skills.slice(0, 3).map((skill: string) => (
+                            <Badge key={skill} variant="secondary" className="text-xs">
+                              {skill}
+                            </Badge>
+                          ))}
+                          {partner.skills.length > 3 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{partner.skills.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onRemovePartner?.(partner.user_id)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="bg-muted p-4 rounded-lg">
             <div className="flex items-start gap-3">
               <Users className="h-5 w-5 text-primary mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium mb-1">Next Steps:</p>
-                <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                  <li>After creating your team, go to "My Teams" tab to view it</li>
-                  <li>Go to "Partners" tab to add students directly to your team</li>
-                  <li>Apply for projects as a team</li>
-                  <li>Collaborate with your teammates</li>
-                </ul>
+                <p className="font-medium mb-1">Team Summary:</p>
+                <p className="text-muted-foreground">
+                  Total members: {selectedPartners.length + 1} (You + {selectedPartners.length} selected partner{selectedPartners.length !== 1 ? 's' : ''})
+                </p>
               </div>
             </div>
           </div>

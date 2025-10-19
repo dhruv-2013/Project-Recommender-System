@@ -17,6 +17,7 @@ export default function Subject() {
   const [subject, setSubject] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedPartners, setSelectedPartners] = useState<any[]>([]);
 
   useEffect(() => {
     checkAuth();
@@ -143,16 +144,23 @@ export default function Subject() {
             <PartnerSuggestions 
               key={`partners-${refreshKey}`}
               subjectCode={subjectCode!} 
-              userId={user.id} 
-              onPartnerAdded={handleTeamUpdate}
+              userId={user.id}
+              selectedPartners={selectedPartners}
+              onAddPartner={(partner) => setSelectedPartners([...selectedPartners, partner])}
+              onRemovePartner={(partnerId) => setSelectedPartners(selectedPartners.filter(p => p.user_id !== partnerId))}
             />
           </TabsContent>
 
           <TabsContent value="group">
             <CreateGroup 
               subjectCode={subjectCode!} 
-              userId={user.id} 
-              onTeamCreated={handleTeamUpdate} 
+              userId={user.id}
+              selectedPartners={selectedPartners}
+              onRemovePartner={(partnerId) => setSelectedPartners(selectedPartners.filter(p => p.user_id !== partnerId))}
+              onTeamCreated={() => {
+                handleTeamUpdate();
+                setSelectedPartners([]);
+              }}
             />
           </TabsContent>
 
