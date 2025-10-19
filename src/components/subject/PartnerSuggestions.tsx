@@ -348,7 +348,31 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
                 )}
 
                 <div className="flex gap-2">
-                  {myTeams.length > 0 ? (
+                  {onAddPartner && onRemovePartner ? (
+                    // New flow: Add to selection for creating new team
+                    <>
+                      {selectedPartners.some(p => p.user_id === student.id) ? (
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => onRemovePartner(student.id)}
+                        >
+                          <Check className="w-4 h-4 mr-2" />
+                          Remove from Team
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="default"
+                          className="flex-1"
+                          onClick={() => onAddPartner({ user_id: student.id, profiles: { full_name: student.name, email: student.email }, skills: student.skills })}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add to Team
+                        </Button>
+                      )}
+                    </>
+                  ) : myTeams.length > 0 ? (
+                    // Old flow: Add directly to existing team
                     <Dialog open={dialogOpen && currentStudent?.id === student.id} onOpenChange={(open) => {
                       setDialogOpen(open);
                       if (open) setCurrentStudent(student);
@@ -412,7 +436,7 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
                   ) : (
                     <div className="flex-1 text-center p-3 bg-muted rounded-lg">
                       <p className="text-sm text-muted-foreground">
-                        Create a team first to add partners
+                        Use the "Make Group" tab to create a team
                       </p>
                     </div>
                   )}
