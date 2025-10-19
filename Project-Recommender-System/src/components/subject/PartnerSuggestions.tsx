@@ -9,15 +9,38 @@ import { Users, Mail, Loader2 } from "lucide-react";
 interface PartnerSuggestionsProps {
   subjectCode: string;
   userId: string;
-  selectedPartners: any[];
-  onAddPartner: (partner: any) => void;
-  onRemovePartner: (partnerId: string) => void;
+  selectedPartners?: any[];
+  onAddPartner?: (partner: any) => void;
+  onRemovePartner?: (partnerId: string) => void;
 }
 
-export function PartnerSuggestions({ subjectCode, userId, selectedPartners, onAddPartner, onRemovePartner }: PartnerSuggestionsProps) {
+export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [], onAddPartner, onRemovePartner }: PartnerSuggestionsProps) {
   const [partners, setPartners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [mySkills, setMySkills] = useState<string[]>([]);
+  const [inviting, setInviting] = useState<string | null>(null);
+  const [myTeamId, setMyTeamId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchMyTeam();
+  }, [userId]);
+
+  const fetchMyTeam = async () => {
+    try {
+      // Check if user has a team
+      const { data: teamMember } = await supabase
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      
+      if (teamMember) {
+        setMyTeamId(teamMember.team_id);
+      }
+    } catch (error) {
+      console.error("Error fetching team:", error);
+    }
+  };
 
   useEffect(() => {
     fetchPartnersAndSkills();
@@ -99,6 +122,35 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners, onAd
       toast.error("Failed to load partner suggestions");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const inviteToTeam = async (partnerId: string, partnerEmail: string) => {
+    if (!myTeamId) {
+      toast.error("You need to create a team first");
+      return;
+    }
+
+    setInviting(partnerId);
+    try {
+      // Create a team invitation
+      const { error } = await supabase
+        .from("team_invitations")
+        .insert({
+          team_id: myTeamId,
+          email: partnerEmail,
+          invited_by: userId,
+          status: "pending"
+        });
+
+      if (error) throw error;
+
+      toast.success("Invitation sent successfully!");
+    } catch (error: any) {
+      console.error("Error inviting partner:", error);
+      toast.error(error.message || "Failed to send invitation");
+    } finally {
+      setInviting(null);
     }
   };
 
@@ -195,24 +247,58 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners, onAd
               </div>
             )}
 
-            <div className="mt-4 pt-4 border-t">
-              {selectedPartners.some(p => p.user_id === student.user_id) ? (
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => onRemovePartner(student.user_id)}
-                >
-                  Remove from Team
-                </Button>
+            <div className="mt-4 pt-4 border-t flex gap-2">
+              {onAddPartner && onRemovePartner ? (
+                // For CreateGroup - show Add/Remove
+                selectedPartners.some(p => p.user_id === student.user_id) ? (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => onRemovePartner(student.user_id)}
+                  >
+                    Remove from Team
+                  </Button>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => onAddPartner(student)}
+                  >
+                    Add to Team
+                  </Button>
+                )
               ) : (
-                <Button 
-                  size="sm" 
-                  className="w-full"
-                  onClick={() => onAddPartner(student)}
-                >
-                  Add to Team
-                </Button>
+                // For standalone view - show Invite
+                myTeamId ? (
+                  <Button 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => inviteToTeam(student.user_id, student.profiles?.email)}
+                    disabled={inviting === student.user_id}
+                  >
+                    {inviting === student.user_id ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Inviting...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Invite to Team
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="w-full"
+                    disabled
+                  >
+                    Create a team first
+                  </Button>
+                )
               )}
             </div>
           </CardContent>
