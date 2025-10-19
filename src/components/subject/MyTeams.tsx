@@ -70,27 +70,40 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
         teamMembers.map(async (tm: any) => {
           if (!tm.teams) return null;
 
-          // Get all members
+          // Get all members with their profiles - FIXED QUERY
           const { data: members, error: membersError } = await supabase
             .from("team_members")
-            .select(`
-              id,
-              user_id,
-              role,
-              joined_at,
-              profiles:user_id (
-                full_name,
-                email
-              )
-            `)
+            .select("id, user_id, role, joined_at")
             .eq("team_id", tm.team_id);
 
           if (membersError) {
             console.error("Error fetching members:", membersError);
+            return {
+              ...tm.teams,
+              myRole: tm.role,
+              members: [],
+              teamSkills: [],
+            };
           }
 
+          // Fetch profiles separately for each member
+          const membersWithProfiles = await Promise.all(
+            (members || []).map(async (member: any) => {
+              const { data: profile } = await supabase
+                .from("profiles")
+                .select("full_name, email")
+                .eq("user_id", member.user_id)
+                .single();
+
+              return {
+                ...member,
+                profiles: profile || { full_name: "Unknown User", email: "N/A" }
+              };
+            })
+          );
+
           // Get skills for all team members
-          const memberUserIds = members?.map(m => m.user_id) || [];
+          const memberUserIds = membersWithProfiles.map(m => m.user_id) || [];
           let teamSkills: string[] = [];
 
           if (memberUserIds.length > 0) {
@@ -111,7 +124,7 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
           return {
             ...tm.teams,
             myRole: tm.role,
-            members: members || [],
+            members: membersWithProfiles,
             teamSkills: teamSkills,
           };
         })
