@@ -471,7 +471,7 @@ export type Database = {
       teams: {
         Row: {
           created_at: string | null
-          created_by: string | null
+          created_by: string
           description: string | null
           id: string
           name: string
@@ -479,7 +479,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          created_by?: string | null
+          created_by: string
           description?: string | null
           id?: string
           name: string
@@ -487,7 +487,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          created_by?: string | null
+          created_by?: string
           description?: string | null
           id?: string
           name?: string
@@ -526,6 +526,14 @@ export type Database = {
     Functions: {
       is_admin: {
         Args: { _user_id: string }
+        Returns: boolean
+      }
+      is_team_creator: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_team_member: {
+        Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
     }
