@@ -248,57 +248,23 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
             )}
 
             <div className="mt-4 pt-4 border-t flex gap-2">
-              {onAddPartner && onRemovePartner ? (
-                // For CreateGroup - show Add/Remove
-                selectedPartners.some(p => p.user_id === student.user_id) ? (
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => onRemovePartner(student.user_id)}
-                  >
-                    Remove from Team
-                  </Button>
-                ) : (
-                  <Button 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => onAddPartner(student)}
-                  >
-                    Add to Team
-                  </Button>
-                )
+              {selectedPartners.some(p => p.user_id === student.user_id) ? (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => onRemovePartner?.(student.user_id)}
+                >
+                  Remove from Team
+                </Button>
               ) : (
-                // For standalone view - show Invite
-                myTeamId ? (
-                  <Button 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => inviteToTeam(student.user_id, student.profiles?.email)}
-                    disabled={inviting === student.user_id}
-                  >
-                    {inviting === student.user_id ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Inviting...
-                      </>
-                    ) : (
-                      <>
-                        <Mail className="h-4 w-4 mr-2" />
-                        Invite to Team
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="w-full"
-                    disabled
-                  >
-                    Create a team first
-                  </Button>
-                )
+                <Button 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => onAddPartner?.(student)}
+                >
+                  Add to Team
+                </Button>
               )}
             </div>
           </CardContent>
