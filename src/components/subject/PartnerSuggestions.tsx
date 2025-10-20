@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Users, Mail, Star, Plus, Check, RefreshCw } from "lucide-react";
+import { Users, Mail, Star, Plus, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -26,49 +26,12 @@ interface PartnerSuggestionsProps {
   onPartnerAdded?: () => void;
 }
 
-const isUuid = (v: string) =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
-
-// ---- Mock data generator ----
-const generateMockStudents = (count: number = 25) => {
-  const first = ["Alice","Bob","Charlie","Diana","Eve","Frank","Grace","Henry","Iris","Jack","Kelly","Leo","Maya","Noah","Olivia","Peter","Quinn","Rachel","Sam","Tara","Uma","Victor","Wendy","Xavier","Yara","Zoe","Aaron","Beth","Chris","Dana"];
-  const last = ["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez","Wilson","Anderson","Taylor","Thomas","Moore","Jackson","Martin","Lee","Thompson","White"];
-  const levels = ["Undergraduate","Graduate","Masters","PhD"];
-  const fields = ["Computer Science","Software Engineering","Data Science","Information Systems","Cybersecurity","AI & Machine Learning","Game Development","Mobile Development"];
-  const skillSets = [
-    ["Python","React","Node.js","MongoDB","AWS"],
-    ["Java","Spring Boot","PostgreSQL","Docker","Kubernetes"],
-    ["JavaScript","TypeScript","Vue.js","GraphQL","Firebase"],
-    ["C++","Unity","Game Design","3D Modeling","Blender"],
-    ["Python","TensorFlow","Machine Learning","Data Analysis","R"],
-    ["React Native","Swift","Kotlin","Mobile UI/UX","Flutter"],
-    ["HTML","CSS","Figma","Adobe XD","Responsive Design"],
-    ["Go","Rust","System Design","Microservices","Redis"],
-  ];
-
-  return Array.from({ length: count }, (_, i) => {
-    const f = first[i % first.length];
-    const l = last[Math.floor(Math.random() * last.length)];
-    const skills = skillSets[i % skillSets.length];
-    return {
-      id: `mock-student-${i + 1}`,
-      name: `${f} ${l}`,
-      email: `${f.toLowerCase()}.${l.toLowerCase()}@university.edu`,
-      level: levels[Math.floor(Math.random() * levels.length)],
-      field: fields[Math.floor(Math.random() * fields.length)],
-      wam: parseFloat((Math.random() * 25 + 65).toFixed(1)),
-      skills,
-      matchPercentage: Math.floor(Math.random() * 40 + 60),
-    };
-  });
-};
 
 export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [], onAddPartner, onRemovePartner, onPartnerAdded }: PartnerSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [mySkills, setMySkills] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [useMockData, setUseMockData] = useState(false);
   const [myTeams, setMyTeams] = useState<any[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string>("");
   const [addingUserId, setAddingUserId] = useState<string | null>(null);
@@ -132,7 +95,6 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
         .neq("user_id", userId);
 
       if (peers && peers.length > 0) {
-        setUseMockData(false);
         const rows = await Promise.all(
           peers.map(async (p: any) => {
             const { data: theirSkills } = await supabase
@@ -161,10 +123,7 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
         rows.sort((a, b) => b.matchPercentage - a.matchPercentage);
         setSuggestions(rows);
       } else {
-        setUseMockData(true);
-        const mocks = generateMockStudents(25).sort((a, b) => b.matchPercentage - a.matchPercentage);
-        setSuggestions(mocks);
-        toast.info("Showing sample students for testing. Create real users to see actual data.");
+        setSuggestions([]);
       }
     } catch (e) {
       console.error(e);
@@ -177,16 +136,6 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
   const handleAddToTeam = async (student: any) => {
     if (!selectedTeam) {
       toast.error("Please select a team first");
-      return;
-    }
-
-    // Mock student - just add to local state
-    if (!isUuid(student.id)) {
-      setAddedPartners(prev => new Set(prev).add(student.id));
-      toast.success(`${student.name} added to team (mock data)`);
-      setDialogOpen(false);
-      setSelectedTeam("");
-      onPartnerAdded?.();
       return;
     }
 
@@ -231,12 +180,6 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
     }
   };
 
-  const refreshMocks = () => {
-    const mocks = generateMockStudents(25).sort((a, b) => b.matchPercentage - a.matchPercentage);
-    setSuggestions(mocks);
-    setAddedPartners(new Set());
-    toast.success("New mock students generated");
-  };
 
   const getMatchColor = (p: number) => {
     if (p >= 80) return "text-green-500";
@@ -266,21 +209,8 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                Partner Suggestions
-                {useMockData && <Badge variant="secondary" className="text-xs">Mock Data</Badge>}
-              </CardTitle>
-              <CardDescription>Students enrolled in {subjectCode}, sorted by skill match</CardDescription>
-            </div>
-            {useMockData && (
-              <Button variant="outline" size="sm" onClick={refreshMocks}>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                New Random Students
-              </Button>
-            )}
-          </div>
+          <CardTitle>Partner Suggestions</CardTitle>
+          <CardDescription>Students enrolled in {subjectCode}, sorted by skill match</CardDescription>
         </CardHeader>
         <CardContent>
           <Input
@@ -296,8 +226,17 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
         <Card>
           <CardContent className="flex flex-col items-center justify-center p-12 text-center">
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No matches found</h3>
-            <p className="text-muted-foreground">Try adjusting your search terms</p>
+            <h3 className="text-lg font-semibold mb-2">No students found</h3>
+            <p className="text-muted-foreground mb-4">
+              {suggestions.length === 0 
+                ? `No other students are enrolled in ${subjectCode} yet.`
+                : "Try adjusting your search terms"}
+            </p>
+            {suggestions.length === 0 && (
+              <Button onClick={() => window.location.href = '/create-test-users'}>
+                Create Test Users
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -365,11 +304,6 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
                           variant="default"
                           className="flex-1"
                           onClick={() => {
-                            // Only allow adding real students with UUIDs
-                            if (useMockData) {
-                              toast.error("Please create real users using the test data generator to form teams");
-                              return;
-                            }
                             onAddPartner({ 
                               user_id: student.id, 
                               profiles: { full_name: student.name, email: student.email }, 
