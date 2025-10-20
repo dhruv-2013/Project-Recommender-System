@@ -364,7 +364,18 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
                         <Button
                           variant="default"
                           className="flex-1"
-                          onClick={() => onAddPartner({ user_id: student.id, profiles: { full_name: student.name, email: student.email }, skills: student.skills })}
+                          onClick={() => {
+                            // Only allow adding real students with UUIDs
+                            if (useMockData) {
+                              toast.error("Please create real users using the test data generator to form teams");
+                              return;
+                            }
+                            onAddPartner({ 
+                              user_id: student.id, 
+                              profiles: { full_name: student.name, email: student.email }, 
+                              skills: student.skills 
+                            });
+                          }}
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Add to Team
