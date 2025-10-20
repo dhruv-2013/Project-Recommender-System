@@ -227,16 +227,11 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
           <CardContent className="flex flex-col items-center justify-center p-12 text-center">
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No students found</h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground">
               {suggestions.length === 0 
                 ? `No other students are enrolled in ${subjectCode} yet.`
                 : "Try adjusting your search terms"}
             </p>
-            {suggestions.length === 0 && (
-              <Button onClick={() => window.location.href = '/create-test-users'}>
-                Create Test Users
-              </Button>
-            )}
           </CardContent>
         </Card>
       ) : (
