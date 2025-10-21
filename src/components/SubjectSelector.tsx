@@ -52,6 +52,7 @@ export function SubjectSelector({ userId, onSignOut, user, profile }: SubjectSel
   }
 
   // Filter subjects by term
+  const t1Subjects = subjects.filter(s => s.term === "2025-T1");
   const t2Subjects = subjects.filter(s => s.term === "2025-T2");
   const t3Subjects = subjects.filter(s => s.term === "2025-T3");
 
@@ -79,63 +80,98 @@ export function SubjectSelector({ userId, onSignOut, user, profile }: SubjectSel
           </div>
 
           <div className="max-w-7xl mx-auto space-y-12">
-            {/* Term 2 Subjects */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-6">Term 2 (2025-T2)</h2>
-              <div className="grid md:grid-cols-3 gap-6">
-                {t2Subjects.map((subject) => (
-                  <Card 
-                    key={subject.code} 
-                    className="cursor-pointer hover:border-primary/50 transition-all hover:shadow-lg"
-                    onClick={() => handleSubjectSelect(subject.code)}
-                  >
-                    <CardHeader>
-                      <div className="flex items-center gap-2 mb-2">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                        <CardTitle>{subject.code}</CardTitle>
-                      </div>
-                      <CardDescription className="text-base font-semibold text-foreground">
-                        {subject.name}
-                      </CardDescription>
-                    </CardHeader>
-                    {subject.description && (
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">{subject.description}</p>
-                      </CardContent>
-                    )}
-                  </Card>
-                ))}
+            {/* Term 1 Subjects */}
+            {t1Subjects.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-6">Term 1 (2025-T1)</h2>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {t1Subjects.map((subject) => (
+                    <Card 
+                      key={subject.code} 
+                      className="cursor-pointer hover:border-primary/50 transition-all hover:shadow-lg"
+                      onClick={() => handleSubjectSelect(subject.code)}
+                    >
+                      <CardHeader>
+                        <div className="flex items-center gap-2 mb-2">
+                          <BookOpen className="h-5 w-5 text-primary" />
+                          <CardTitle>{subject.code}</CardTitle>
+                        </div>
+                        <CardDescription className="text-base font-semibold text-foreground">
+                          {subject.name}
+                        </CardDescription>
+                      </CardHeader>
+                      {subject.description && (
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground">{subject.description}</p>
+                        </CardContent>
+                      )}
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Term 2 Subjects */}
+            {t2Subjects.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-6">Term 2 (2025-T2)</h2>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {t2Subjects.map((subject) => (
+                    <Card 
+                      key={subject.code} 
+                      className="cursor-pointer hover:border-primary/50 transition-all hover:shadow-lg"
+                      onClick={() => handleSubjectSelect(subject.code)}
+                    >
+                      <CardHeader>
+                        <div className="flex items-center gap-2 mb-2">
+                          <BookOpen className="h-5 w-5 text-primary" />
+                          <CardTitle>{subject.code}</CardTitle>
+                        </div>
+                        <CardDescription className="text-base font-semibold text-foreground">
+                          {subject.name}
+                        </CardDescription>
+                      </CardHeader>
+                      {subject.description && (
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground">{subject.description}</p>
+                        </CardContent>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Term 3 Subjects */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-6">Term 3 (2025-T3)</h2>
-              <div className="grid md:grid-cols-3 gap-6">
-                {t3Subjects.map((subject) => (
-                  <Card 
-                    key={subject.code} 
-                    className="cursor-pointer hover:border-primary/50 transition-all hover:shadow-lg"
-                    onClick={() => handleSubjectSelect(subject.code)}
-                  >
-                    <CardHeader>
-                      <div className="flex items-center gap-2 mb-2">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                        <CardTitle>{subject.code}</CardTitle>
-                      </div>
-                      <CardDescription className="text-base font-semibold text-foreground">
-                        {subject.name}
-                      </CardDescription>
-                    </CardHeader>
-                    {subject.description && (
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">{subject.description}</p>
-                      </CardContent>
-                    )}
-                  </Card>
-                ))}
+            {t3Subjects.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-6">Term 3 (2025-T3)</h2>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {t3Subjects.map((subject) => (
+                    <Card 
+                      key={subject.code} 
+                      className="cursor-pointer hover:border-primary/50 transition-all hover:shadow-lg"
+                      onClick={() => handleSubjectSelect(subject.code)}
+                    >
+                      <CardHeader>
+                        <div className="flex items-center gap-2 mb-2">
+                          <BookOpen className="h-5 w-5 text-primary" />
+                          <CardTitle>{subject.code}</CardTitle>
+                        </div>
+                        <CardDescription className="text-base font-semibold text-foreground">
+                          {subject.name}
+                        </CardDescription>
+                      </CardHeader>
+                      {subject.description && (
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground">{subject.description}</p>
+                        </CardContent>
+                      )}
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </main>
