@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,8 +26,14 @@ interface PartnerSuggestionsProps {
   onPartnerAdded?: () => void;
 }
 
-
-export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [], onAddPartner, onRemovePartner, onPartnerAdded }: PartnerSuggestionsProps) {
+export function PartnerSuggestions({
+  subjectCode,
+  userId,
+  selectedPartners = [],
+  onAddPartner,
+  onRemovePartner,
+  onPartnerAdded,
+}: PartnerSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [mySkills, setMySkills] = useState<string[]>([]);
@@ -42,29 +48,18 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
   useEffect(() => {
     void fetchSuggestions();
     void fetchMyTeams();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subjectCode, userId]);
 
   const fetchMyTeams = async () => {
     try {
       const { data: teamMembers, error } = await supabase
         .from("team_members")
-        .select(`
-          team_id,
-          role,
-          teams:team_id (
-            id,
-            name,
-            created_by
-          )
-        `)
+        .select(`team_id, role, teams:team_id (id, name, created_by)`)
         .eq("user_id", userId);
 
       if (error) throw error;
-
-      // Only show teams where the user is the creator
-      const creatorTeams = teamMembers?.filter(tm => tm.role === 'creator') || [];
-      setMyTeams(creatorTeams.map(tm => tm.teams));
+      const creatorTeams = teamMembers?.filter((tm) => tm.role === "creator") || [];
+      setMyTeams(creatorTeams.map((tm) => tm.teams));
     } catch (error) {
       console.error("Error fetching teams:", error);
     }
@@ -73,60 +68,49 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
   const fetchSuggestions = async () => {
     try {
       setLoading(true);
-      
-      // Your skills
+
+      // 1️⃣ Get current user's skills
       const { data: userSkillsData } = await supabase
         .from("user_skills")
         .select("skill_name")
         .eq("user_id", userId);
-      
+
       const my = userSkillsData?.map((s) => s.skill_name) || [];
       setMySkills(my);
 
-      // Peers in the same subject
-      const { data: peers } = await supabase
-        .from("student_subjects")
-        .select(`
-          user_id,
-          profiles:user_id (full_name, email),
-          student_profiles:user_id (academic_level, field_of_study, wam)
-        `)
-        .eq("subject_code", subjectCode)
+      // 2️⃣ Fetch all COMP3900 students directly from student_profiles
+      const { data: partners, error } = await supabase
+        .from("student_profiles")
+        .select("*")
+        .contains("courses", [subjectCode])
         .neq("user_id", userId);
 
-      if (peers && peers.length > 0) {
-        const rows = await Promise.all(
-          peers.map(async (p: any) => {
-            const { data: theirSkills } = await supabase
-              .from("user_skills")
-              .select("skill_name")
-              .eq("user_id", p.user_id);
-            
-            const skills = theirSkills?.map((x) => x.skill_name) || [];
-            const matchCount = my.filter((k) => skills.includes(k)).length;
-            const matchPercentage = my.length
-              ? Math.round((matchCount / my.length) * 100)
-              : Math.floor(Math.random() * 40 + 60);
+      if (error) throw error;
 
-            return {
-              id: p.user_id,
-              name: p.profiles?.full_name || "Anonymous",
-              email: p.profiles?.email || "",
-              level: p.student_profiles?.academic_level || "Undergraduate",
-              field: p.student_profiles?.field_of_study || "Computer Science",
-              wam: p.student_profiles?.wam ?? null,
-              skills,
-              matchPercentage,
-            };
-          })
-        );
-        rows.sort((a, b) => b.matchPercentage - a.matchPercentage);
-        setSuggestions(rows);
-      } else {
-        setSuggestions([]);
-      }
+      // 3️⃣ Compute skill match %
+      const rows = partners.map((p) => {
+        const skills = Array.isArray(p.skills) ? p.skills : [];
+        const matchCount = my.filter((k) => skills.includes(k)).length;
+        const matchPercentage = my.length
+          ? Math.round((matchCount / my.length) * 100)
+          : Math.floor(Math.random() * 40 + 60);
+
+        return {
+          id: p.user_id,
+          name: p.name || "Anonymous",
+          email: p.email || "",
+          level: p.academic_level || "Undergraduate",
+          field: p.field_of_study || "Computer Science",
+          wam: p.wam ?? null,
+          skills,
+          matchPercentage,
+        };
+      });
+
+      rows.sort((a, b) => b.matchPercentage - a.matchPercentage);
+      setSuggestions(rows);
     } catch (e) {
-      console.error(e);
+      console.error("Error fetching suggestions:", e);
       toast.error("Failed to load partner suggestions");
     } finally {
       setLoading(false);
@@ -142,7 +126,6 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
     setAddingUserId(student.id);
 
     try {
-      // Check if user is already a member
       const { data: existingMember } = await supabase
         .from("team_members")
         .select("*")
@@ -156,22 +139,19 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
         return;
       }
 
-      // Directly add to team (for testing - no invitation needed)
-      const { error: memberError } = await supabase
-        .from("team_members")
-        .insert({
-          team_id: selectedTeam,
-          user_id: student.id,
-          role: "member"
-        });
+      const { error: memberError } = await supabase.from("team_members").insert({
+        team_id: selectedTeam,
+        user_id: student.id,
+        role: "member",
+      });
 
       if (memberError) throw memberError;
 
-      setAddedPartners(prev => new Set(prev).add(student.id));
+      setAddedPartners((prev) => new Set(prev).add(student.id));
       toast.success(`${student.name} added to your team!`);
       setDialogOpen(false);
       setSelectedTeam("");
-      onPartnerAdded?.(); // Notify parent to refresh
+      onPartnerAdded?.();
     } catch (e: any) {
       console.error(e);
       toast.error("Failed to add partner", { description: e?.message });
@@ -179,7 +159,6 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
       setAddingUserId(null);
     }
   };
-
 
   const getMatchColor = (p: number) => {
     if (p >= 80) return "text-green-500";
@@ -228,7 +207,7 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No students found</h3>
             <p className="text-muted-foreground">
-              {suggestions.length === 0 
+              {suggestions.length === 0
                 ? `No other students are enrolled in ${subjectCode} yet.`
                 : "Try adjusting your search terms"}
             </p>
@@ -283,59 +262,48 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
 
                 <div className="flex gap-2">
                   {onAddPartner && onRemovePartner ? (
-                    // New flow: Add to selection for creating new team
                     <>
-                      {selectedPartners.some(p => p.user_id === student.id) ? (
-                        <Button
-                          variant="outline"
-                          className="flex-1"
-                          onClick={() => onRemovePartner(student.id)}
-                        >
-                          <Check className="w-4 h-4 mr-2" />
-                          Remove from Team
+                      {selectedPartners.some((p) => p.user_id === student.id) ? (
+                        <Button variant="outline" className="flex-1" onClick={() => onRemovePartner(student.id)}>
+                          <Check className="w-4 h-4 mr-2" /> Remove from Team
                         </Button>
                       ) : (
                         <Button
                           variant="default"
                           className="flex-1"
-                          onClick={() => {
-                            onAddPartner({ 
-                              user_id: student.id, 
-                              profiles: { full_name: student.name, email: student.email }, 
-                              skills: student.skills 
-                            });
-                          }}
+                          onClick={() =>
+                            onAddPartner({
+                              user_id: student.id,
+                              profiles: { full_name: student.name, email: student.email },
+                              skills: student.skills,
+                            })
+                          }
                         >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add to Team
+                          <Plus className="w-4 h-4 mr-2" /> Add to Team
                         </Button>
                       )}
                     </>
                   ) : myTeams.length > 0 ? (
-                    // Old flow: Add directly to existing team
-                    <Dialog open={dialogOpen && currentStudent?.id === student.id} onOpenChange={(open) => {
-                      setDialogOpen(open);
-                      if (open) setCurrentStudent(student);
-                      else {
-                        setCurrentStudent(null);
-                        setSelectedTeam("");
-                      }
-                    }}>
+                    <Dialog
+                      open={dialogOpen && currentStudent?.id === student.id}
+                      onOpenChange={(open) => {
+                        setDialogOpen(open);
+                        if (open) setCurrentStudent(student);
+                        else {
+                          setCurrentStudent(null);
+                          setSelectedTeam("");
+                        }
+                      }}
+                    >
                       <DialogTrigger asChild>
-                        <Button
-                          variant={isAdded ? "outline" : "default"}
-                          className="flex-1"
-                          disabled={isAdded || isAdding}
-                        >
+                        <Button variant={isAdded ? "outline" : "default"} className="flex-1" disabled={isAdded || isAdding}>
                           {isAdded ? (
                             <>
-                              <Check className="w-4 h-4 mr-2" />
-                              Added
+                              <Check className="w-4 h-4 mr-2" /> Added
                             </>
                           ) : (
                             <>
-                              <Plus className="w-4 h-4 mr-2" />
-                              Add to Team
+                              <Plus className="w-4 h-4 mr-2" /> Add to Team
                             </>
                           )}
                         </Button>
@@ -343,9 +311,7 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle>Add to Team</DialogTitle>
-                          <DialogDescription>
-                            Select a team to add {student.name} directly
-                          </DialogDescription>
+                          <DialogDescription>Select a team to add {student.name} directly</DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div>
@@ -363,11 +329,7 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
                               </SelectContent>
                             </Select>
                           </div>
-                          <Button
-                            onClick={() => handleAddToTeam(student)}
-                            disabled={!selectedTeam || isAdding}
-                            className="w-full"
-                          >
+                          <Button onClick={() => handleAddToTeam(student)} disabled={!selectedTeam || isAdding} className="w-full">
                             {isAdding ? "Adding..." : "Add to Team"}
                           </Button>
                         </div>
@@ -375,9 +337,7 @@ export function PartnerSuggestions({ subjectCode, userId, selectedPartners = [],
                     </Dialog>
                   ) : (
                     <div className="flex-1 text-center p-3 bg-muted rounded-lg">
-                      <p className="text-sm text-muted-foreground">
-                        Use the "Make Group" tab to create a team
-                      </p>
+                      <p className="text-sm text-muted-foreground">Use the "Make Group" tab to create a team</p>
                     </div>
                   )}
                 </div>
