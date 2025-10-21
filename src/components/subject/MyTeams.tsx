@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Users, Mail, Crown, Trash2, Code } from "lucide-react";
+import { Users, Mail, Crown, Trash2, Code, Zap } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +28,6 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
 
   useEffect(() => {
     if (userId) {
-      console.log("MyTeams - userId:", userId);
       fetchMyTeams();
     }
   }, [userId]);
@@ -36,7 +35,6 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
   const fetchMyTeams = async () => {
     try {
       setLoading(true);
-      console.log("Fetching teams for user:", userId);
 
       // Get teams where user is a member
       const { data: teamMembers, error: membersError } = await supabase
@@ -44,23 +42,14 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
         .select("id, team_id, role, joined_at")
         .eq("user_id", userId);
 
-      console.log("Team members result:", { teamMembers, membersError });
-
-      if (membersError) {
-        console.error("Error fetching team members:", membersError);
-        throw membersError;
-      }
-
+      if (membersError) throw membersError;
       if (!teamMembers || teamMembers.length === 0) {
-        console.log("No team memberships found");
         setTeams([]);
         setLoading(false);
         return;
       }
 
-      // Get team IDs
       const teamIds = teamMembers.map((tm: any) => tm.team_id);
-      console.log("Team IDs:", teamIds);
 
       // Fetch team details
       const { data: teamsData, error: teamsError } = await supabase
@@ -68,26 +57,20 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
         .select("*")
         .in("id", teamIds);
 
-      console.log("Teams data result:", { teamsData, teamsError });
-
-      if (teamsError) {
-        console.error("Error fetching teams:", teamsError);
-        throw teamsError;
-      }
+      if (teamsError) throw teamsError;
 
       // For each team, get all members and their skills
       const teamsWithDetails = await Promise.all(
         (teamsData || []).map(async (team: any) => {
-          // Find this user's role in the team
           const myMembership = teamMembers.find((tm: any) => tm.team_id === team.id);
 
-          // Get all members of this team
+          // Get all members
           const { data: allMembers } = await supabase
             .from("team_members")
             .select("id, user_id, role, joined_at")
             .eq("team_id", team.id);
 
-          // Fetch profile for each member
+          // Fetch profile and skills for each member
           const membersWithProfiles = await Promise.all(
             (allMembers || []).map(async (member: any) => {
               const { data: profile } = await supabase
@@ -96,28 +79,45 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
                 .eq("user_id", member.user_id)
                 .single();
 
+              const { data: userSkills } = await supabase
+                .from("user_skills")
+                .select("skill_name, level")
+                .eq("user_id", member.user_id);
+
               return {
                 ...member,
-                profiles: profile || { full_name: "Unknown User", email: "N/A" }
+                profiles: profile || { full_name: "Unknown User", email: "N/A" },
+                skills: userSkills || []
               };
             })
           );
 
-          // Get all skills for team members
-          const memberUserIds = membersWithProfiles.map(m => m.user_id);
-          let teamSkills: string[] = [];
+          // Calculate team skills
+          const skillsMap = new Map();
+          membersWithProfiles.forEach(member => {
+            member.skills.forEach((skill: any) => {
+              const existing = skillsMap.get(skill.skill_name);
+              if (existing) {
+                existing.count += 1;
+                existing.totalLevel += skill.level || 3;
+              } else {
+                skillsMap.set(skill.skill_name, { 
+                  count: 1, 
+                  totalLevel: skill.level || 3 
+                });
+              }
+            });
+          });
 
-          if (memberUserIds.length > 0) {
-            const { data: skillsData } = await supabase
-              .from("user_skills")
-              .select("skill_name")
-              .in("user_id", memberUserIds);
+          const teamSkills = Array.from(skillsMap.entries())
+            .map(([name, data]: [string, any]) => ({
+              name,
+              count: data.count,
+              avgLevel: Math.round(data.totalLevel / data.count)
+            }))
+            .sort((a, b) => b.count - a.count);
 
-            if (skillsData) {
-              const uniqueSkills = new Set(skillsData.map(s => s.skill_name));
-              teamSkills = Array.from(uniqueSkills);
-            }
-          }
+          console.log(`Team ${team.name} has ${teamSkills.length} unique skills:`, teamSkills);
 
           return {
             ...team,
@@ -128,7 +128,6 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
         })
       );
 
-      console.log("Teams with details:", teamsWithDetails);
       setTeams(teamsWithDetails);
     } catch (error) {
       console.error("Error in fetchMyTeams:", error);
@@ -204,26 +203,26 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
       <Card>
         <CardHeader>
           <CardTitle>My Teams ({teams.length})</CardTitle>
-          <CardDescription>Teams you're a member of</CardDescription>
+          <CardDescription>Teams you're a member of with combined skills</CardDescription>
         </CardHeader>
       </Card>
 
       {teams.map((team) => (
-        <Card key={team.id} className="hover-lift">
+        <Card key={team.id} className="hover-lift border-2">
           <CardHeader>
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-2xl">
                   {team.name}
                   {team.myRole === 'creator' && (
-                    <Badge variant="default">
+                    <Badge variant="default" className="text-sm">
                       <Crown className="w-3 h-3 mr-1" />
                       Creator
                     </Badge>
                   )}
                 </CardTitle>
                 {team.description && (
-                  <CardDescription className="mt-2">{team.description}</CardDescription>
+                  <CardDescription className="mt-2 text-base">{team.description}</CardDescription>
                 )}
               </div>
               {team.myRole !== 'creator' && (
@@ -237,7 +236,7 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Leave Team?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to leave "{team.name}"? You'll need to be re-invited to join again.
+                        Are you sure you want to leave "{team.name}"?
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -251,29 +250,48 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
               )}
             </div>
           </CardHeader>
+          
           <CardContent>
-            <div className="space-y-4">
-              {/* Team Skills */}
+            <div className="space-y-6">
+              {/* 🔥 TEAM SKILLS SECTION - THIS IS NEW! */}
               {team.teamSkills && team.teamSkills.length > 0 && (
-                <div>
-                  <h4 className="font-medium mb-3 flex items-center gap-2">
-                    <Code className="w-4 h-4" />
-                    Team Skills ({team.teamSkills.length})
-                  </h4>
+                <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-lg p-6 border-2 border-blue-500/20">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Zap className="w-6 h-6 text-yellow-500" />
+                    <h4 className="font-bold text-xl">Team Skillset</h4>
+                    <Badge variant="secondary" className="ml-2">
+                      {team.teamSkills.length} skills
+                    </Badge>
+                  </div>
+                  
                   <div className="flex flex-wrap gap-2">
-                    {team.teamSkills.map((skill: string) => (
-                      <Badge key={skill} variant="default">
-                        {skill}
+                    {team.teamSkills.map((skill: any) => (
+                      <Badge 
+                        key={skill.name} 
+                        variant="default"
+                        className="text-base px-4 py-2 bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Code className="w-4 h-4 mr-2" />
+                        {skill.name}
+                        {skill.count > 1 && (
+                          <span className="ml-2 bg-white/20 px-2 py-0.5 rounded">
+                            ×{skill.count}
+                          </span>
+                        )}
                       </Badge>
                     ))}
                   </div>
+                  
+                  <p className="text-sm text-muted-foreground mt-3">
+                    💡 Combined skills from all {team.members?.length || 0} team members
+                  </p>
                 </div>
               )}
 
-              {/* Team Members */}
+              {/* Team Members Section */}
               <div>
-                <h4 className="font-medium mb-3 flex items-center gap-2">
-                  <Users className="w-4 h-4" />
+                <h4 className="font-semibold mb-3 flex items-center gap-2 text-lg">
+                  <Users className="w-5 h-5" />
                   Team Members ({team.members?.length || 0})
                 </h4>
                 <div className="space-y-2">
@@ -281,22 +299,36 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
                     team.members.map((member: any) => (
                       <div
                         key={member.id}
-                        className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                        className="flex items-center justify-between p-4 bg-muted rounded-lg border"
                       >
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <div className="font-medium flex items-center gap-2">
-                              {member.profiles?.full_name || "Anonymous"}
-                              {member.role === 'creator' && (
-                                <Crown className="w-4 h-4 text-yellow-500" />
-                              )}
-                            </div>
-                            <div className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Mail className="w-3 h-3" />
-                              {member.profiles?.email || "No email"}
-                            </div>
+                        <div className="flex-1">
+                          <div className="font-medium flex items-center gap-2 text-base">
+                            {member.profiles?.full_name || "Anonymous"}
+                            {member.role === 'creator' && (
+                              <Crown className="w-4 h-4 text-yellow-500" />
+                            )}
                           </div>
+                          <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                            <Mail className="w-3 h-3" />
+                            {member.profiles?.email || "No email"}
+                          </div>
+                          
+                          {/* Member's individual skills */}
+                          {member.skills && member.skills.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {member.skills.map((skill: any) => (
+                                <Badge 
+                                  key={skill.skill_name} 
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
+                                  {skill.skill_name}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
                         </div>
+                        
                         <div className="flex items-center gap-2">
                           <Badge variant={member.role === 'creator' ? 'default' : 'secondary'}>
                             {member.role}
@@ -312,7 +344,7 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Remove Member?</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to remove {member.profiles?.full_name || "this member"} from the team?
+                                    Remove {member.profiles?.full_name || "this member"}?
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
