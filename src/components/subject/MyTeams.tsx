@@ -79,45 +79,54 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
                 .eq("user_id", member.user_id)
                 .single();
 
-              const { data: userSkills } = await supabase
-                .from("user_skills")
-                .select("skill_name, level")
-                .eq("user_id", member.user_id);
+              // Try to get skills from student_profiles first (where dummy data is stored)
+              const { data: studentProfile } = await supabase
+                .from("student_profiles")
+                .select("skills")
+                .eq("user_id", member.user_id)
+                .single();
+
+              // Fallback to user_skills table if student_profiles doesn't have skills
+              let skillsArray: string[] = [];
+              if (studentProfile && Array.isArray(studentProfile.skills) && studentProfile.skills.length > 0) {
+                skillsArray = studentProfile.skills;
+              } else {
+                const { data: userSkills } = await supabase
+                  .from("user_skills")
+                  .select("skill_name")
+                  .eq("user_id", member.user_id);
+                skillsArray = userSkills?.map((s: any) => s.skill_name) || [];
+              }
 
               return {
                 ...member,
                 profiles: profile || { full_name: "Unknown User", email: "N/A" },
-                skills: userSkills || []
+                skills: skillsArray
               };
             })
           );
 
-          // Calculate team skills
+          // Calculate team skills - count occurrences of each skill
           const skillsMap = new Map();
           membersWithProfiles.forEach(member => {
-            member.skills.forEach((skill: any) => {
-              const existing = skillsMap.get(skill.skill_name);
-              if (existing) {
-                existing.count += 1;
-                existing.totalLevel += skill.level || 3;
-              } else {
-                skillsMap.set(skill.skill_name, { 
-                  count: 1, 
-                  totalLevel: skill.level || 3 
-                });
-              }
-            });
+            if (Array.isArray(member.skills)) {
+              member.skills.forEach((skillName: string) => {
+                const existing = skillsMap.get(skillName);
+                if (existing) {
+                  existing.count += 1;
+                } else {
+                  skillsMap.set(skillName, { count: 1 });
+                }
+              });
+            }
           });
 
           const teamSkills = Array.from(skillsMap.entries())
             .map(([name, data]: [string, any]) => ({
               name,
               count: data.count,
-              avgLevel: Math.round(data.totalLevel / data.count)
             }))
             .sort((a, b) => b.count - a.count);
-
-          console.log(`Team ${team.name} has ${teamSkills.length} unique skills:`, teamSkills);
 
           return {
             ...team,
@@ -253,7 +262,7 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
           
           <CardContent>
             <div className="space-y-6">
-              {/* 🔥 TEAM SKILLS SECTION - THIS IS NEW! */}
+              {/* 🔥 TEAM SKILLS SECTION */}
               {team.teamSkills && team.teamSkills.length > 0 && (
                 <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-lg p-6 border-2 border-blue-500/20">
                   <div className="flex items-center gap-2 mb-4">
@@ -314,15 +323,15 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
                           </div>
                           
                           {/* Member's individual skills */}
-                          {member.skills && member.skills.length > 0 && (
+                          {member.skills && Array.isArray(member.skills) && member.skills.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-2">
-                              {member.skills.map((skill: any) => (
+                              {member.skills.map((skillName: string) => (
                                 <Badge 
-                                  key={skill.skill_name} 
+                                  key={skillName} 
                                   variant="secondary"
                                   className="text-xs"
                                 >
-                                  {skill.skill_name}
+                                  {skillName}
                                 </Badge>
                               ))}
                             </div>
