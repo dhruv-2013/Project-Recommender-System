@@ -35,12 +35,16 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
   const [courseSearch, setCourseSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     academicLevel: "",
     fieldOfStudy: "",
     wam: "",
+    lab: "",
   });
 
   useEffect(() => {
@@ -55,9 +59,14 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
           .single();
 
         if (profile) {
+          const full = profile.full_name || "";
+          const [fn = "", ...rest] = full.split(" ");
+          const ln = rest.join(" ");
           setFormData(prev => ({
             ...prev,
-            name: profile.full_name || "",
+            name: full,
+            firstName: fn,
+            lastName: ln,
             email: profile.email || user.email || "",
           }));
         }
@@ -65,6 +74,37 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
     };
 
     fetchUserData();
+    // Load existing student profile for edit mode
+    const loadExistingProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: existing } = await supabase
+        .from('student_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (existing) {
+        setIsEditing(true);
+        const full = existing.name || "";
+        const [fn = "", ...rest] = full.split(" ");
+        const ln = rest.join(" ");
+        setFormData(prev => ({
+          ...prev,
+          name: full || prev.name,
+          firstName: fn || prev.firstName,
+          lastName: ln || prev.lastName,
+          email: existing.email || prev.email,
+          academicLevel: existing.academic_level || "",
+          fieldOfStudy: existing.field_of_study || "",
+          wam: existing.wam != null ? String(existing.wam) : "",
+          lab: existing.experience_level || "",
+        }));
+        setSkills(Array.isArray(existing.skills) ? existing.skills : []);
+        setInterests(Array.isArray(existing.interests) ? existing.interests : []);
+        setCourses(Array.isArray(existing.courses) ? existing.courses : []);
+      }
+    };
+    void loadExistingProfile();
   }, []);
 
   const addSkill = () => {
@@ -117,9 +157,10 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
         throw new Error("You must be logged in to create a profile");
       }
 
+      const fullName = [formData.firstName, formData.lastName].filter(Boolean).join(" ");
       const profileData = {
         user_id: user.id,
-        name: formData.name,
+        name: fullName || formData.name,
         email: formData.email,
         academic_level: formData.academicLevel,
         field_of_study: formData.fieldOfStudy,
@@ -127,21 +168,36 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
         skills: skills,
         interests: interests,
         courses: courses,
+        // Store Lab selection in existing 'experience_level' string column
+        experience_level: formData.lab || null,
       };
 
-      const { data, error } = await supabase
-        .from('student_profiles')
-        .insert([profileData])
-        .select()
-        .single();
-
-      if (error) throw error;
+      let data: any = null;
+      if (isEditing) {
+        const { data: updated, error } = await supabase
+          .from('student_profiles')
+          .update(profileData)
+          .eq('user_id', user.id)
+          .select()
+          .maybeSingle();
+        if (error) throw error;
+        data = updated;
+      } else {
+        const { data: created, error } = await supabase
+          .from('student_profiles')
+          .insert([profileData])
+          .select()
+          .single();
+        if (error) throw error;
+        data = created;
+      }
 
       toast({
-        title: "Profile created successfully!",
-        description: "Your profile has been saved. Now generating personalized project recommendations...",
+        title: isEditing ? "Profile updated successfully!" : "Profile created successfully!",
+        description: isEditing ? "Your changes have been saved." : "Your profile has been saved. Now generating personalized project recommendations...",
       });
 
+      // Notify parent immediately to allow closing modals or navigating away
       onProfileCreated?.(data);
     } catch (error: any) {
       console.error('Error creating profile:', error);
@@ -160,9 +216,9 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
       <div className="container mx-auto px-6">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-12 animate-fade-up">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Create Your Profile</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{isEditing ? 'Edit Your Profile' : 'Create Your Profile'}</h2>
             <p className="text-lg text-muted-foreground">
-              Tell us about your skills and experience to get personalized project recommendations
+              {isEditing ? 'Update your details and preferences.' : 'Tell us about your skills and experience to get personalized project recommendations'}
             </p>
           </div>
 
@@ -178,9 +234,31 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Basic Information - Hidden, pre-filled from auth */}
-                <input type="hidden" name="name" value={formData.name} />
-                <input type="hidden" name="email" value={formData.email} />
+                {/* Basic Information */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">First Name</label>
+                    <Input
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                      placeholder="e.g., Dhruv"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Last Name</label>
+                    <Input
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                      placeholder="e.g., Gulwani"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Email</label>
+                    <Input value={formData.email} disabled />
+                  </div>
+                </div>
 
                 {/* Academic Details */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -192,9 +270,7 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="undergraduate">Undergraduate</SelectItem>
-                        <SelectItem value="graduate">Graduate</SelectItem>
                         <SelectItem value="masters">Master's</SelectItem>
-                        <SelectItem value="phd">PhD</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -304,6 +380,22 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                   </div>
                 </div>
 
+                {/* Lab Selection */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Lab</label>
+                  <Select value={formData.lab} onValueChange={(value) => setFormData({ ...formData, lab: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your lab" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="lab1">Lab 1</SelectItem>
+                      <SelectItem value="lab2">Lab 2</SelectItem>
+                      <SelectItem value="lab3">Lab 3</SelectItem>
+                      <SelectItem value="lab4">Lab 4</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Courses */}
                 <div>
                   <label className="block text-sm font-medium mb-2">Completed Courses</label>
@@ -366,10 +458,10 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating Profile...
+                        {isEditing ? 'Saving Changes...' : 'Creating Profile...'}
                       </>
                     ) : (
-                      "Create Profile"
+                      isEditing ? 'Save Changes' : 'Create Profile'
                     )}
                   </Button>
                 </div>

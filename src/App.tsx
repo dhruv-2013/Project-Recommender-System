@@ -11,6 +11,7 @@ import Subject from "./pages/Subject";
 import RoleSelection from "./pages/RoleSelection";
 import CreateTestUsers from "./pages/CreateTestUsers";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
 import RaycastBackground from "./components/RaycastBackground";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/admin" element={<Admin />} />
               <Route path="/teams" element={<Teams />} />
               <Route path="/subject/:subjectCode" element={<Subject />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/create-test-users" element={<CreateTestUsers />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

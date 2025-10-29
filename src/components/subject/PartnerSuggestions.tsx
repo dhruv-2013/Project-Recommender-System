@@ -261,11 +261,11 @@ export function PartnerSuggestions({
                 )}
 
                 <div className="flex gap-2">
-                  {onAddPartner && onRemovePartner ? (
+                  {onAddPartner && onRemovePartner && (
                     <>
                       {selectedPartners.some((p) => p.user_id === student.id) ? (
                         <Button variant="outline" className="flex-1" onClick={() => onRemovePartner(student.id)}>
-                          <Check className="w-4 h-4 mr-2" /> Remove from Team
+                          <Check className="w-4 h-4 mr-2" /> Remove from New Team
                         </Button>
                       ) : (
                         <Button
@@ -279,11 +279,13 @@ export function PartnerSuggestions({
                             })
                           }
                         >
-                          <Plus className="w-4 h-4 mr-2" /> Add to Team
+                          <Plus className="w-4 h-4 mr-2" /> Add to New Team
                         </Button>
                       )}
                     </>
-                  ) : myTeams.length > 0 ? (
+                  )}
+
+                  {myTeams.length > 0 ? (
                     <Dialog
                       open={dialogOpen && currentStudent?.id === student.id}
                       onOpenChange={(open) => {
@@ -303,14 +305,14 @@ export function PartnerSuggestions({
                             </>
                           ) : (
                             <>
-                              <Plus className="w-4 h-4 mr-2" /> Add to Team
+                              <Plus className="w-4 h-4 mr-2" /> Add to My Team
                             </>
                           )}
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Add to Team</DialogTitle>
+                          <DialogTitle>Add to Existing Team</DialogTitle>
                           <DialogDescription>Select a team to add {student.name} directly</DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
