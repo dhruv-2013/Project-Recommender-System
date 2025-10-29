@@ -4,7 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Users, Mail, Crown, Trash2, Code, Zap } from "lucide-react";
+import { Users, Mail, Crown, Trash2, Code, Zap, UserPlus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +28,9 @@ interface MyTeamsProps {
 export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [inviteOpenForTeamId, setInviteOpenForTeamId] = useState<string | null>(null);
+  const [inviteEmails, setInviteEmails] = useState<string>("");
+  const [inviteLoading, setInviteLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (userId) {
@@ -183,6 +189,59 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
     }
   };
 
+  const handleInviteMembers = async (teamId: string) => {
+    try {
+      setInviteLoading(true);
+      const emails = inviteEmails
+        .split(/[,\n]/)
+        .map(e => e.trim())
+        .filter(e => e.length > 0);
+
+      if (emails.length === 0) {
+        toast.error("Please enter at least one email");
+        return;
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Not authenticated");
+        return;
+      }
+
+      const invitations = emails.map(email => ({ team_id: teamId, email, invited_by: user.id }));
+      const { error } = await supabase.from("team_invitations").insert(invitations);
+      if (error) throw error;
+
+      toast.success(`Invited ${emails.length} member${emails.length > 1 ? 's' : ''}`);
+      setInviteEmails("");
+      setInviteOpenForTeamId(null);
+      onTeamUpdated?.();
+    } catch (error: any) {
+      console.error("Error inviting members:", error);
+      toast.error("Failed to send invitations");
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  const handleDeleteTeam = async (teamId: string, teamName: string) => {
+    try {
+      const { error } = await supabase
+        .from("teams")
+        .delete()
+        .eq("id", teamId);
+
+      if (error) throw error;
+
+      toast.success(`Deleted team: ${teamName}`);
+      fetchMyTeams();
+      onTeamUpdated?.();
+    } catch (error: any) {
+      console.error("Error deleting team:", error);
+      toast.error("Failed to delete team");
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -256,6 +315,62 @@ export function MyTeams({ userId, onTeamUpdated }: MyTeamsProps) {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
+              )}
+              {team.myRole === 'creator' && (
+                <div className="flex gap-2">
+                  <Dialog open={inviteOpenForTeamId === team.id} onOpenChange={(open) => {
+                    if (!open) { setInviteOpenForTeamId(null); setInviteEmails(""); }
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2" onClick={() => setInviteOpenForTeamId(team.id)}>
+                        <UserPlus className="w-4 h-4" />
+                        Invite Members
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Invite members to "{team.name}"</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-2">
+                        <Label htmlFor="emails">Emails</Label>
+                        <Textarea
+                          id="emails"
+                          placeholder="Enter email addresses separated by commas or new lines"
+                          value={inviteEmails}
+                          onChange={(e) => setInviteEmails(e.target.value)}
+                        />
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => { setInviteOpenForTeamId(null); setInviteEmails(""); }}>Cancel</Button>
+                        <Button disabled={inviteLoading} onClick={() => handleInviteMembers(team.id)}>
+                          {inviteLoading ? 'Sending...' : 'Send Invites'}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm" className="gap-2">
+                        <Trash2 className="w-4 h-4" />
+                        Delete Team
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete this team?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete the team and remove all members.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteTeam(team.id, team.name)}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               )}
             </div>
           </CardHeader>

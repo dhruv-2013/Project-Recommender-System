@@ -9,6 +9,7 @@ import { PartnerSuggestions } from "@/components/subject/PartnerSuggestions";
 import { CreateGroup } from "@/components/subject/CreateGroup";
 import { ProjectList } from "@/components/subject/ProjectList";
 import { MyTeams } from "@/components/subject/MyTeams";
+import { TeamProjectRecommendations } from "@/components/subject/TeamProjectRecommendations";
 
 export default function Subject() {
   const { subjectCode } = useParams<{ subjectCode: string }>();
@@ -137,7 +138,8 @@ export default function Subject() {
             <TabsTrigger value="partners">Partners</TabsTrigger>
             <TabsTrigger value="group">Make Group</TabsTrigger>
             <TabsTrigger value="myteams">My Teams</TabsTrigger>
-            <TabsTrigger value="projects">Project List</TabsTrigger>
+            <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+            
           </TabsList>
 
           <TabsContent value="partners">
@@ -165,19 +167,26 @@ export default function Subject() {
           </TabsContent>
 
           <TabsContent value="myteams">
-            <MyTeams 
-              key={`myteams-${refreshKey}`} 
-              userId={user.id} 
-              onTeamUpdated={handleTeamUpdate} 
-            />
-          </TabsContent>
+  <MyTeams 
+    key={`myteams-${refreshKey}`} 
+    userId={user.id} 
+    onTeamUpdated={handleTeamUpdate} 
+  />
+</TabsContent>
 
-          <TabsContent value="projects">
-            <ProjectList 
-              subjectCode={subjectCode!} 
-              userId={user.id} 
-            />
-          </TabsContent>
+<TabsContent value="recommendations">
+  <TeamProjectRecommendations 
+    subjectCode={subjectCode!} 
+    userId={user.id}
+  />
+</TabsContent>
+
+<TabsContent value="projects">
+  <ProjectList 
+    subjectCode={subjectCode!} 
+    userId={user.id} 
+  />
+</TabsContent>
         </Tabs>
       </div>
     </div>

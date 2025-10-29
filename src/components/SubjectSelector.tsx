@@ -60,15 +60,15 @@ export function SubjectSelector({ userId, onSignOut, user, profile }: SubjectSel
     <div className="min-h-screen">
       <Header user={user} profile={profile} onSignOut={onSignOut} />
       
-      {/* Back Button - Top Right */}
-      <div className="fixed top-20 right-6 z-40">
+      {/* Back Button - Top Left */}
+      <div className="fixed top-24 left-6 z-40">
         <Button
           onClick={onSignOut}
           size="lg"
           className="bg-white text-primary hover:bg-white/90 flex items-center gap-2 px-6 py-3 font-semibold shadow-lg"
         >
           <ArrowLeft className="h-5 w-5" />
-          Back to Welcome
+          Back
         </Button>
       </div>
       
