@@ -45,6 +45,15 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
                 Admin Dashboard
               </Button>
             )}
+            {user && profile?.role === 'student' && (
+              <Button 
+                onClick={() => navigate('/profile')} 
+                variant="ghost"
+                className="text-white hover:text-white/80"
+              >
+                Profile & Marks
+              </Button>
+            )}
             {user && (
               <>
                 <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>

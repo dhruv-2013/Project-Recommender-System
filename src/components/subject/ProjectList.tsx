@@ -5,6 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Briefcase, Clock, Users, TrendingUp } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface ProjectListProps {
   subjectCode: string;
@@ -15,9 +19,15 @@ export function ProjectList({ subjectCode, userId }: ProjectListProps) {
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userSkills, setUserSkills] = useState<string[]>([]);
+  const [myCreatorTeams, setMyCreatorTeams] = useState<any[]>([]);
+  const [teamDialogForProjectId, setTeamDialogForProjectId] = useState<string | null>(null);
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("");
+  const [teamAnswer1, setTeamAnswer1] = useState<string>("");
+  const [teamAnswer2, setTeamAnswer2] = useState<string>("");
 
   useEffect(() => {
     fetchProjects();
+    fetchMyCreatorTeams();
   }, [subjectCode, userId]);
 
   const fetchProjects = async () => {
@@ -70,6 +80,19 @@ export function ProjectList({ subjectCode, userId }: ProjectListProps) {
     }
   };
 
+  const fetchMyCreatorTeams = async () => {
+    try {
+      const { data: teamMembers } = await supabase
+        .from("team_members")
+        .select("team_id, role, teams:team_id (id, name)")
+        .eq("user_id", userId);
+      const creatorTeams = (teamMembers || []).filter((tm: any) => tm.role === "creator").map((tm: any) => tm.teams);
+      setMyCreatorTeams(creatorTeams);
+    } catch (e) {
+      // ignore
+    }
+  };
+
   const handleApply = async (projectId: string) => {
     try {
       const { error } = await supabase
@@ -87,6 +110,49 @@ export function ProjectList({ subjectCode, userId }: ProjectListProps) {
     } catch (error: any) {
       console.error("Error applying:", error);
       toast.error(error.message || "Failed to submit application");
+    }
+  };
+
+  const handleApplyAsTeam = async (projectId: string) => {
+    try {
+      if (!selectedTeamId) {
+        toast.error("Please select a team");
+        return;
+      }
+      if (!teamAnswer1.trim() || !teamAnswer2.trim()) {
+        toast.error("Please answer both questions");
+        return;
+      }
+
+      const { data: app, error: appError } = await supabase
+        .from("applications")
+        .insert({
+          project_id: projectId,
+          applicant_id: selectedTeamId,
+          applicant_type: "team",
+          status: "pending",
+        })
+        .select()
+        .single();
+      if (appError) throw appError;
+
+      // Save team answers in a separate table
+      const { error: respError } = await supabase
+        .from("application_responses" as any)
+        .insert({
+          application_id: app.id,
+          q1: teamAnswer1.trim(),
+          q2: teamAnswer2.trim(),
+        });
+      if (respError) throw respError;
+
+      toast.success("Team application submitted!");
+      setTeamDialogForProjectId(null);
+      setSelectedTeamId("");
+      setTeamAnswer1("");
+      setTeamAnswer2("");
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to submit team application");
     }
   };
 
@@ -197,13 +263,62 @@ export function ProjectList({ subjectCode, userId }: ProjectListProps) {
               >
                 Apply as Individual
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => toast.info("Team application coming soon!")}
-                className="flex-1"
-              >
-                Apply as Team
-              </Button>
+              <Dialog open={teamDialogForProjectId === project.id} onOpenChange={(open) => {
+                if (!open) { setTeamDialogForProjectId(null); setSelectedTeamId(""); }
+              }}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setTeamDialogForProjectId(project.id)}
+                    disabled={myCreatorTeams.length === 0}
+                  >
+                    Apply as Team
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Select your team</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    {myCreatorTeams.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">You must be a team creator to apply as a team.</p>
+                    ) : (
+                      <>
+                        <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a team" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {myCreatorTeams.map((t: any) => (
+                              <SelectItem value={t.id} key={t.id}>{t.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="space-y-2">
+                          <Label>Why is your team a good fit for this project?</Label>
+                          <Textarea
+                            placeholder="Describe relevant experience and strengths"
+                            value={teamAnswer1}
+                            onChange={(e) => setTeamAnswer1(e.target.value)}
+                            rows={3}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Outline your proposed approach or plan</Label>
+                          <Textarea
+                            placeholder="Briefly outline how you plan to execute"
+                            value={teamAnswer2}
+                            onChange={(e) => setTeamAnswer2(e.target.value)}
+                            rows={3}
+                          />
+                        </div>
+                        <Button onClick={() => handleApplyAsTeam(project.id)} disabled={!selectedTeamId || !teamAnswer1.trim() || !teamAnswer2.trim()}>Submit Application</Button>
+                      </>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardContent>
         </Card>

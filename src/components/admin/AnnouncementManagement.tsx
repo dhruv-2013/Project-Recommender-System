@@ -13,8 +13,10 @@ export const AnnouncementManagement = () => {
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
   const [formData, setFormData] = useState({ title: '', content: '' });
   const { toast } = useToast();
+  const [authorMap, setAuthorMap] = useState<Record<string, { full_name: string }>>({});
 
   useEffect(() => {
     fetchAnnouncements();
@@ -23,10 +25,7 @@ export const AnnouncementManagement = () => {
   const fetchAnnouncements = async () => {
     const { data, error } = await supabase
       .from('announcements')
-      .select(`
-        *,
-        profiles:created_by (full_name)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -37,6 +36,19 @@ export const AnnouncementManagement = () => {
       });
     } else {
       setAnnouncements(data || []);
+      // fetch authors separately
+      const ids = Array.from(new Set((data || []).map(a => a.created_by))).filter(Boolean);
+      if (ids.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('user_id, full_name')
+          .in('user_id', ids);
+        const map: Record<string, { full_name: string }> = {};
+        (profilesData || []).forEach((p: any) => { map[p.user_id] = { full_name: p.full_name }; });
+        setAuthorMap(map);
+      } else {
+        setAuthorMap({});
+      }
     }
     setLoading(false);
   };
@@ -54,13 +66,24 @@ export const AnnouncementManagement = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
-      .from('announcements')
-      .insert({
-        title: formData.title,
-        content: formData.content,
-        created_by: user.id
-      });
+    let error;
+    if (editing) {
+      ({ error } = await supabase
+        .from('announcements')
+        .update({
+          title: formData.title,
+          content: formData.content
+        })
+        .eq('id', editing.id));
+    } else {
+      ({ error } = await supabase
+        .from('announcements')
+        .insert({
+          title: formData.title,
+          content: formData.content,
+          created_by: user.id
+        }));
+    }
 
     if (error) {
       toast({
@@ -71,10 +94,36 @@ export const AnnouncementManagement = () => {
     } else {
       toast({
         title: "Success",
-        description: "Announcement created successfully"
+        description: editing ? "Announcement updated" : "Announcement created successfully"
       });
       setFormData({ title: '', content: '' });
+      setEditing(null);
       setIsDialogOpen(false);
+      fetchAnnouncements();
+    }
+  };
+
+  const openCreate = () => {
+    setEditing(null);
+    setFormData({ title: '', content: '' });
+    setIsDialogOpen(true);
+  };
+
+  const openEdit = (a: any) => {
+    setEditing(a);
+    setFormData({ title: a.title, content: a.content });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase
+      .from('announcements')
+      .delete()
+      .eq('id', id);
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to delete announcement', variant: 'destructive' });
+    } else {
+      toast({ title: 'Deleted', description: 'Announcement removed' });
       fetchAnnouncements();
     }
   };
@@ -87,16 +136,16 @@ export const AnnouncementManagement = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Announcement Management</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(o) => { if (!o) { setEditing(null); setFormData({ title: '', content: '' }); } setIsDialogOpen(o); }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button onClick={openCreate}>
               <Plus className="w-4 h-4 mr-2" />
               Create Announcement
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Announcement</DialogTitle>
+              <DialogTitle>{editing ? 'Edit Announcement' : 'Create New Announcement'}</DialogTitle>
             </DialogHeader>
             
             <div className="space-y-4">
@@ -126,7 +175,7 @@ export const AnnouncementManagement = () => {
                   Cancel
                 </Button>
                 <Button onClick={handleSubmit}>
-                  Create Announcement
+                  {editing ? 'Update' : 'Create'} Announcement
                 </Button>
               </div>
             </div>
@@ -140,11 +189,15 @@ export const AnnouncementManagement = () => {
             <CardHeader>
               <CardTitle>{announcement.title}</CardTitle>
               <p className="text-sm text-muted-foreground">
-                By {announcement.profiles?.full_name} on {new Date(announcement.created_at).toLocaleDateString()}
+                By {authorMap[announcement.created_by]?.full_name || 'Admin'} on {new Date(announcement.created_at).toLocaleDateString()}
               </p>
             </CardHeader>
             <CardContent>
-              <div className="whitespace-pre-wrap">{announcement.content}</div>
+              <div className="whitespace-pre-wrap mb-3">{announcement.content}</div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => openEdit(announcement)}>Edit</Button>
+                <Button variant="destructive" size="sm" onClick={() => handleDelete(announcement.id)}>Delete</Button>
+              </div>
             </CardContent>
           </Card>
         ))}

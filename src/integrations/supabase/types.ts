@@ -88,6 +88,9 @@ export type Database = {
           individual_adjustment: number | null
           project_id: string | null
           released: boolean | null
+          rubric_scores: Json | null
+          rubric_total: number | null
+          rubric_weights: Json | null
           team_id: string | null
           team_mark: number | null
           updated_at: string | null
@@ -101,6 +104,9 @@ export type Database = {
           individual_adjustment?: number | null
           project_id?: string | null
           released?: boolean | null
+          rubric_scores?: Json | null
+          rubric_total?: number | null
+          rubric_weights?: Json | null
           team_id?: string | null
           team_mark?: number | null
           updated_at?: string | null
@@ -114,6 +120,9 @@ export type Database = {
           individual_adjustment?: number | null
           project_id?: string | null
           released?: boolean | null
+          rubric_scores?: Json | null
+          rubric_total?: number | null
+          rubric_weights?: Json | null
           team_id?: string | null
           team_mark?: number | null
           updated_at?: string | null

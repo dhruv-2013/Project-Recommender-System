@@ -116,12 +116,12 @@ export default function Subject() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <Button
-            variant="ghost"
+            variant="default"
             onClick={() => navigate("/")}
-            className="mb-4 !text-white hover:!text-white hover:!bg-white/10 flex items-center gap-2"
+            className="mb-4 bg-black text-white hover:bg-black/80 flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Home
+            Back
           </Button>
           
           <div className="bg-card rounded-lg border p-6 shadow-card">

@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, User, FileText, Award, Loader2 } from "lucide-react";
+import { Plus, X, User, FileText, Award, Loader2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,6 +36,9 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [resumeUploading, setResumeUploading] = useState(false);
+  const [resumeExtracting, setResumeExtracting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     firstName: "",
@@ -211,6 +214,62 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
     }
   };
 
+  const handleResumeUploadAndExtract = async () => {
+    try {
+      if (!resumeFile) {
+        toast({ title: "No resume selected", description: "Please choose a resume file first." });
+        return;
+      }
+      setResumeUploading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("You must be logged in to upload a resume");
+
+      const path = `${user.id}/${Date.now()}_${resumeFile.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(path, resumeFile, { contentType: resumeFile.type || 'application/octet-stream', upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: signed, error: signErr } = await supabase.storage
+        .from('resumes')
+        .createSignedUrl(path, 60 * 5);
+      if (signErr || !signed?.signedUrl) throw signErr || new Error("Failed to create signed URL");
+
+      setResumeExtracting(true);
+      const { data: extraction, error } = await supabase.functions.invoke('extract-resume', {
+        body: { url: signed.signedUrl }
+      });
+      if (error) throw error;
+
+      // Merge extraction into form
+      if (extraction) {
+        const nextSkills = Array.isArray(extraction.skills) ? Array.from(new Set([...(skills || []), ...extraction.skills])) : skills;
+        const nextInterests = Array.isArray(extraction.interests) ? Array.from(new Set([...(interests || []), ...extraction.interests])) : interests;
+        const nextCourses = Array.isArray(extraction.courses) ? Array.from(new Set([...(courses || []), ...extraction.courses])) : courses;
+
+        setSkills(nextSkills);
+        setInterests(nextInterests);
+        setCourses(nextCourses);
+        setFormData(prev => ({
+          ...prev,
+          firstName: extraction.firstName || prev.firstName,
+          lastName: extraction.lastName || prev.lastName,
+          fieldOfStudy: extraction.fieldOfStudy || prev.fieldOfStudy,
+          academicLevel: extraction.academicLevel || prev.academicLevel,
+          wam: extraction.wam != null ? String(extraction.wam) : prev.wam,
+        }));
+      }
+
+      toast({ title: "Resume processed", description: "We pre-filled fields from your resume. Please review before saving." });
+    } catch (err: any) {
+      console.error('Resume extraction error:', err);
+      toast({ title: "Couldn't extract resume", description: err?.message || 'Please fill the form manually.', variant: 'destructive' });
+    } finally {
+      setResumeUploading(false);
+      setResumeExtracting(false);
+    }
+  };
+
   return (
     <section className="py-20 bg-gradient-subtle">
       <div className="container mx-auto px-6">
@@ -234,6 +293,33 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Resume upload and extraction */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-2">Upload Resume (PDF/DOCX)</label>
+                  <Input
+                    type="file"
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button type="button" className="w-full" disabled={!resumeFile || resumeUploading || resumeExtracting} onClick={handleResumeUploadAndExtract}>
+                    {(resumeUploading || resumeExtracting) ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {resumeUploading ? 'Uploading…' : 'Extracting…'}
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Extract from Resume
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
                 {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>

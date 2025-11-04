@@ -77,9 +77,6 @@ const Admin = () => {
             <p className="text-muted-foreground">Manage projects, applications, and marks</p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => navigate('/create-test-users')} variant="secondary">
-              Create Test Users
-            </Button>
             <Button onClick={handleSignOut} variant="outline">
               Sign Out
             </Button>

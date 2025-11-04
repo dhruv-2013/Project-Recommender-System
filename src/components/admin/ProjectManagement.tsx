@@ -32,8 +32,6 @@ export const ProjectManagement = () => {
     required_skills: [] as string[],
     preferred_skills: [] as string[],
     learning_outcomes: [] as string[],
-    published: false,
-    mentorship_available: false
   });
 
   useEffect(() => {
@@ -59,10 +57,10 @@ export const ProjectManagement = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.title || !formData.description) {
+    if (!formData.title || !formData.description || !formData.estimated_duration) {
       toast({
         title: "Error",
-        description: "Title and description are required",
+        description: "Title, description, and estimated duration are required",
         variant: "destructive"
       });
       return;
@@ -118,8 +116,6 @@ export const ProjectManagement = () => {
       required_skills: [],
       preferred_skills: [],
       learning_outcomes: [],
-      published: false,
-      mentorship_available: false
     });
     setEditingProject(null);
   };
@@ -131,16 +127,14 @@ export const ProjectManagement = () => {
       description: project.description,
       category: project.category,
       difficulty_level: project.difficulty_level,
-      estimated_duration: project.estimated_duration,
+      estimated_duration: project.estimated_duration || '',
       capacity: project.capacity,
       team_size_min: project.team_size_min || 1,
       team_size_max: project.team_size_max || 1,
-      assessor_ids: project.assessor_ids || [],
+      assessor_ids: (project.assessor_ids || []),
       required_skills: project.required_skills || [],
       preferred_skills: project.preferred_skills || [],
       learning_outcomes: project.learning_outcomes || [],
-      published: project.published,
-      mentorship_available: project.mentorship_available || false
     });
     setIsDialogOpen(true);
   };
@@ -226,6 +220,16 @@ export const ProjectManagement = () => {
                 />
               </div>
 
+              <div>
+                <Label htmlFor="estimated_duration">Estimated Duration</Label>
+                <Input
+                  id="estimated_duration"
+                  value={formData.estimated_duration}
+                  onChange={(e) => setFormData(prev => ({ ...prev, estimated_duration: e.target.value }))}
+                  placeholder="e.g., 4 weeks, 2 months"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="category">Category</Label>
@@ -259,16 +263,6 @@ export const ProjectManagement = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="duration">Estimated Duration</Label>
-                  <Input
-                    id="duration"
-                    value={formData.estimated_duration}
-                    onChange={(e) => setFormData(prev => ({ ...prev, estimated_duration: e.target.value }))}
-                    placeholder="e.g., 8 weeks"
-                  />
-                </div>
-
                 <div>
                   <Label htmlFor="capacity">Capacity (Number of Teams)</Label>
                   <Input
@@ -306,36 +300,16 @@ export const ProjectManagement = () => {
               </div>
 
               <div>
-                <Label htmlFor="assessors">Assessor IDs (comma-separated UUIDs)</Label>
+                <Label htmlFor="assessors">Assessor Emails (comma-separated)</Label>
                 <Input
                   id="assessors"
                   value={formData.assessor_ids.join(', ')}
                   onChange={(e) => setFormData(prev => ({ 
                     ...prev, 
-                    assessor_ids: e.target.value.split(',').map(id => id.trim()).filter(id => id)
+                    assessor_ids: e.target.value.split(',').map(email => email.trim()).filter(email => email)
                   }))}
-                  placeholder="assessor-uuid-1, assessor-uuid-2"
+                  placeholder="assessor1@unsw.edu.au, assessor2@unsw.edu.au"
                 />
-              </div>
-
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="published"
-                    checked={formData.published}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, published: checked }))}
-                  />
-                  <Label htmlFor="published">Published</Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="mentorship"
-                    checked={formData.mentorship_available}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, mentorship_available: checked }))}
-                  />
-                  <Label htmlFor="mentorship">Mentorship Available</Label>
-                </div>
               </div>
 
               <div className="flex justify-end space-x-2">
@@ -359,7 +333,6 @@ export const ProjectManagement = () => {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     {project.title}
-                    {project.published && <Badge variant="default">Published</Badge>}
                     {project.archived && <Badge variant="secondary">Archived</Badge>}
                   </CardTitle>
                   <p className="text-muted-foreground mt-2">{project.description}</p>
@@ -391,6 +364,11 @@ export const ProjectManagement = () => {
                   <span className="font-medium">Team Size:</span> {project.team_size_min}-{project.team_size_max}
                 </div>
               </div>
+              {project.estimated_duration && (
+                <div className="mt-2 text-sm">
+                  <span className="font-medium">Duration:</span> {project.estimated_duration}
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
