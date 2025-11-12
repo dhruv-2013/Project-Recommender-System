@@ -1,10 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Brain, Menu, X, LogOut, User } from "lucide-react";
+import { Brain, Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User as SupabaseUser } from "@supabase/supabase-js";
-import StudentProfileForm from "@/components/StudentProfileForm";
 
 interface HeaderProps {
   user?: SupabaseUser;
@@ -14,7 +12,6 @@ interface HeaderProps {
 
 const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
 
   return (
@@ -45,36 +42,8 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
                 Admin Dashboard
               </Button>
             )}
-            {user && profile?.role === 'student' && (
-              <Button 
-                onClick={() => navigate('/profile')} 
-                variant="ghost"
-                className="text-white hover:text-white/80"
-              >
-                Profile & Marks
-              </Button>
-            )}
             {user && (
               <>
-                <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="text-white hover:text-white/80"
-                    aria-label="Profile"
-                    onClick={() => setIsProfileOpen((prev) => !prev)}
-                  >
-                    <User className="w-5 h-5" />
-                  </Button>
-                  <DialogContent className="max-w-3xl">
-                    <DialogHeader>
-                      <DialogTitle>Edit Profile</DialogTitle>
-                    </DialogHeader>
-                    <div className="pt-2">
-                      <StudentProfileForm onProfileCreated={() => setIsProfileOpen(false)} />
-                    </div>
-                  </DialogContent>
-                </Dialog>
                 <Button onClick={onSignOut} variant="outline" size="sm">
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out

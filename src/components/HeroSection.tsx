@@ -32,20 +32,15 @@ const HeroSection = ({ onGetStarted, isLoggedIn = false, userRole }: HeroSection
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             {!isLoggedIn && (
-              <>
-                <Button 
-                  variant="hero" 
-                  size="lg" 
-                  className="px-8 py-4 text-lg"
-                  onClick={onGetStarted}
-                >
-                  Get Started
-                  <ArrowRight className="ml-2" />
-                </Button>
-                <Button variant="outline" size="lg" className="px-8 py-4 text-lg">
-                  View Demo
-                </Button>
-              </>
+              <Button 
+                variant="hero" 
+                size="lg" 
+                className="px-8 py-4 text-lg"
+                onClick={onGetStarted}
+              >
+                Get Started
+                <ArrowRight className="ml-2" />
+              </Button>
             )}
           </div>
 

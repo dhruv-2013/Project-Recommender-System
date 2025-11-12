@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -65,7 +64,6 @@ export const MarksManagement = () => {
   const fetchApprovedTeams = async () => {
     try {
       setLoading(true);
-      // Fetch all approved team applications with marks info
       const { data: appsData, error: appsError } = await supabase
         .from('applications')
         .select(`
@@ -81,42 +79,33 @@ export const MarksManagement = () => {
       if (appsError) {
         console.error('Error fetching applications:', appsError);
         toast({
-          title: "Error",
+          title: 'Error',
           description: `Failed to fetch applications: ${appsError.message}`,
-          variant: "destructive"
+          variant: 'destructive',
         });
         setLoading(false);
         return;
       }
 
       if (!appsData || appsData.length === 0) {
-        console.log('No approved team applications found');
         setTeams([]);
         setLoading(false);
         return;
       }
 
-      console.log('Found approved applications:', appsData.length);
-
-      // Get team IDs
-      const teamIds = appsData.map(app => app.applicant_id);
-
-      // Fetch team information
+      const teamIds = appsData.map((app) => app.applicant_id);
       const { data: teamsData } = await supabase
         .from('teams')
         .select('id, name, description')
         .in('id', teamIds);
 
-      // Fetch team members
       const { data: teamMembersData } = await supabase
         .from('team_members')
         .select('team_id, user_id')
         .in('team_id', teamIds);
 
-      // Get all user IDs
-      const userIds = teamMembersData?.map(tm => tm.user_id).filter(Boolean) || [];
-      
-      // Fetch profiles for team members
+      const userIds = teamMembersData?.map((tm) => tm.user_id).filter(Boolean) || [];
+
       let profilesData = null;
       if (userIds.length > 0) {
         const { data } = await supabase
@@ -126,13 +115,12 @@ export const MarksManagement = () => {
         profilesData = data;
       }
 
-      // Build teams with application info
-      const teamsWithApps: TeamWithApplication[] = appsData.map(app => {
-        const team = teamsData?.find(t => t.id === app.applicant_id);
+      const teamsWithApps: TeamWithApplication[] = appsData.map((app) => {
+        const team = teamsData?.find((t) => t.id === app.applicant_id);
         const members = teamMembersData
-          ?.filter(tm => tm.team_id === app.applicant_id)
-          .map(tm => {
-            const profile = profilesData?.find(p => p.user_id === tm.user_id);
+          ?.filter((tm) => tm.team_id === app.applicant_id)
+          .map((tm) => {
+            const profile = profilesData?.find((p) => p.user_id === tm.user_id);
             return {
               user_id: tm.user_id || '',
               full_name: profile?.full_name || null,
@@ -152,27 +140,25 @@ export const MarksManagement = () => {
       });
 
       setTeams(teamsWithApps);
-      console.log('Teams loaded:', teamsWithApps.length);
 
-      // Fetch all marks for these teams to show status
       if (teamsWithApps.length > 0) {
-        const allTeamIds = teamsWithApps.map(t => t.id);
-        const allProjectIds = teamsWithApps.map(t => t.project_id);
-        
+        const allTeamIds = teamsWithApps.map((t) => t.id);
+        const allProjectIds = teamsWithApps.map((t) => t.project_id);
+
         const { data: allMarks } = await supabase
           .from('marks')
           .select('*')
           .in('team_id', allTeamIds)
           .in('project_id', allProjectIds);
-        
+
         setMarks(allMarks || []);
       }
     } catch (error: any) {
       console.error('Error in fetchApprovedTeams:', error);
       toast({
-        title: "Error",
-        description: error?.message || "Failed to load teams",
-        variant: "destructive"
+        title: 'Error',
+        description: error?.message || 'Failed to load teams',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -180,10 +166,9 @@ export const MarksManagement = () => {
   };
 
   const fetchMarkForTeam = async () => {
-    const team = teams.find(t => t.id === selectedTeam);
+    const team = teams.find((t) => t.id === selectedTeam);
     if (!team) return;
 
-    // Fetch existing mark for this team and project
     const { data: marksData, error: marksError } = await supabase
       .from('marks')
       .select('*')
@@ -192,9 +177,9 @@ export const MarksManagement = () => {
 
     if (marksError) {
       toast({
-        title: "Error",
-        description: "Failed to fetch marks",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to fetch marks',
+        variant: 'destructive',
       });
       return;
     }
@@ -211,13 +196,13 @@ export const MarksManagement = () => {
     rubricTotal: number | null,
     rubricWeights: Record<string, number> | null,
   ) => {
-    const team = teams.find(t => t.id === teamId);
+    const team = teams.find((t) => t.id === teamId);
     if (!team) return;
 
     const finalMark = teamMark + individualAdjustment;
-    
-    const existingMark = marks.find(m => m.team_id === teamId && m.project_id === team.project_id);
-    
+
+    const existingMark = marks.find((m) => m.team_id === teamId && m.project_id === team.project_id);
+
     const markData: any = {
       project_id: team.project_id,
       team_id: teamId,
@@ -233,38 +218,31 @@ export const MarksManagement = () => {
 
     let error;
     if (existingMark) {
-      ({ error } = await supabase
-        .from('marks')
-        .update(markData)
-        .eq('id', existingMark.id));
+      ({ error } = await supabase.from('marks').update(markData).eq('id', existingMark.id));
     } else {
-      ({ error } = await supabase
-        .from('marks')
-        .insert(markData));
+      ({ error } = await supabase.from('marks').insert(markData));
     }
 
     if (error) {
       toast({
-        title: "Error",
-        description: "Failed to save mark",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to save mark',
+        variant: 'destructive',
       });
     } else {
       toast({
-        title: "Success",
-        description: "Mark saved successfully"
+        title: 'Success',
+        description: 'Mark saved successfully',
       });
       fetchMarkForTeam();
-      // Refresh teams list to update status badges
       fetchApprovedTeams();
-      // Clear selection to allow selecting another team
       setSelectedTeam('');
       setMarks([]);
     }
   };
 
   const handleReleaseGrades = async () => {
-    const team = teams.find(t => t.id === selectedTeam);
+    const team = teams.find((t) => t.id === selectedTeam);
     if (!team) return;
 
     const { error } = await supabase
@@ -275,19 +253,17 @@ export const MarksManagement = () => {
 
     if (error) {
       toast({
-        title: "Error",
-        description: "Failed to release grades",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to release grades',
+        variant: 'destructive',
       });
     } else {
       toast({
-        title: "Success",
-        description: "Grades released successfully"
+        title: 'Success',
+        description: 'Grades released successfully',
       });
       fetchMarkForTeam();
-      // Refresh teams list to update status badges
       fetchApprovedTeams();
-      // Clear selection to allow selecting another team
       setSelectedTeam('');
       setMarks([]);
     }
@@ -309,7 +285,6 @@ export const MarksManagement = () => {
       </div>
 
       {selectedTeam ? (
-        // Show marking form when team is selected
         <div className="space-y-4">
           <Button
             variant="outline"
@@ -322,10 +297,10 @@ export const MarksManagement = () => {
             ← Back to Team List
           </Button>
           {(() => {
-            const team = teams.find(t => t.id === selectedTeam);
-            const existingMark = marks.find(m => m.team_id === selectedTeam);
+            const team = teams.find((t) => t.id === selectedTeam);
+            const existingMark = marks.find((m) => m.team_id === selectedTeam);
             if (!team) return null;
-            
+
             const application: ApplicationWithTeam = {
               id: team.application_id,
               applicant_id: team.id,
@@ -357,7 +332,7 @@ export const MarksManagement = () => {
                       <Button
                         onClick={handleReleaseGrades}
                         className="w-full"
-                        variant={existingMark.released ? "outline" : "default"}
+                        variant={existingMark.released ? 'outline' : 'default'}
                         disabled={existingMark.released}
                       >
                         {existingMark.released ? 'Grades Already Released' : 'Release Grades to Students'}
@@ -375,7 +350,6 @@ export const MarksManagement = () => {
           })()}
         </div>
       ) : (
-        // Show team selection cards
         <div className="space-y-4">
           {teams.length === 0 ? (
             <div className="text-center py-12 border rounded-lg">
@@ -387,7 +361,7 @@ export const MarksManagement = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {teams.map((team) => {
-                const teamMark = marks.find(m => m.team_id === team.id && m.project_id === team.project_id);
+                const teamMark = marks.find((m) => m.team_id === team.id && m.project_id === team.project_id);
                 const isMarked = !!teamMark;
                 const isReleased = teamMark?.released || false;
 
@@ -404,20 +378,12 @@ export const MarksManagement = () => {
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{team.name}</CardTitle>
-                        {isReleased && (
-                          <Badge className="bg-green-100 text-green-800">Released</Badge>
-                        )}
-                        {isMarked && !isReleased && (
-                          <Badge variant="secondary">Marked</Badge>
-                        )}
+                        {isReleased && <Badge className="bg-green-100 text-green-800">Released</Badge>}
+                        {isMarked && !isReleased && <Badge variant="secondary">Marked</Badge>}
                       </div>
-                      <p className="text-sm font-medium text-primary mt-1">
-                        {team.project_title}
-                      </p>
+                      <p className="text-sm font-medium text-primary mt-1">{team.project_title}</p>
                       {team.description && (
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                          {team.description}
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{team.description}</p>
                       )}
                     </CardHeader>
                     <CardContent>
@@ -427,10 +393,7 @@ export const MarksManagement = () => {
                           <div className="flex flex-wrap gap-1 mt-1">
                             {team.members && team.members.length > 0 ? (
                               team.members.slice(0, 3).map((member) => (
-                                <span
-                                  key={member.user_id}
-                                  className="text-xs bg-muted px-2 py-0.5 rounded"
-                                >
+                                <span key={member.user_id} className="text-xs bg-muted px-2 py-0.5 rounded">
                                   {member.full_name || `User ${member.user_id.slice(0, 6)}`}
                                 </span>
                               ))
@@ -457,7 +420,7 @@ export const MarksManagement = () => {
                         <div className="pt-2">
                           <Button
                             className="w-full"
-                            variant={isMarked ? "outline" : "default"}
+                            variant={isMarked ? 'outline' : 'default'}
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedTeam(team.id);
@@ -479,97 +442,157 @@ export const MarksManagement = () => {
   );
 };
 
+const GRADE_SCALE = {
+  HD: { label: 'High Distinction (HD)', value: 90, description: 'Outstanding execution that exceeds expectations with innovation and polish.' },
+  DN: { label: 'Distinction (DN)', value: 80, description: 'Strong delivery that meets all expectations with minor gaps.' },
+  CR: { label: 'Credit (CR)', value: 70, description: 'Competent work that satisfies key requirements with notable improvements needed.' },
+  PS: { label: 'Pass (PS)', value: 60, description: 'Fundamental understanding demonstrated; limited depth or refinement.' },
+  FL: { label: 'Fail (FL)', value: 40, description: 'Key requirements not met or submission incomplete.' },
+} as const;
+
+type GradeKey = keyof typeof GRADE_SCALE;
+
+const SECTION_CONFIG = [
+  {
+    key: 'Technical Knowledge',
+    weight: 40,
+    description: 'Depth of engineering approach, architecture, testing, and technical execution.'
+  },
+  {
+    key: 'Presentation',
+    weight: 30,
+    description: 'Narrative clarity, visual communication, and ability to convey impact.'
+  },
+  {
+    key: 'Teamwork & Professionalism',
+    weight: 30,
+    description: 'Collaboration, reliability, and stakeholder-ready delivery.'
+  }
+] as const;
+
+const scoreToGrade = (score?: number): GradeKey => {
+  if (score == null) return 'CR';
+  const entries = Object.entries(GRADE_SCALE) as Array<[GradeKey, { value: number }]>;
+  return entries.reduce((best, [grade, meta]) => {
+    const bestDiff = Math.abs(score - GRADE_SCALE[best].value);
+    const candidateDiff = Math.abs(score - meta.value);
+    return candidateDiff < bestDiff ? grade : best;
+  }, 'FL' as GradeKey);
+};
+
+const parseFeedbackSections = (feedback: string | null | undefined) => {
+  if (!feedback) {
+    return {
+      comments: SECTION_CONFIG.reduce<Record<string, string>>((acc, section) => {
+        acc[section.key] = '';
+        return acc;
+      }, {}),
+      overall: '',
+    };
+  }
+
+  const blocks = feedback.split(/\n\s*\n/);
+  const comments: Record<string, string> = SECTION_CONFIG.reduce<Record<string, string>>((acc, section) => {
+    acc[section.key] = '';
+    return acc;
+  }, {});
+  const remainder: string[] = [];
+
+  for (const block of blocks) {
+    const match = block.match(/^([^:\n]+):\n([\s\S]*)$/);
+    if (match) {
+      const [, heading, body] = match;
+      if (heading in comments) {
+        comments[heading] = body.trim();
+        continue;
+      }
+    }
+    if (block.trim().length > 0) {
+      remainder.push(block.trim());
+    }
+  }
+
+  return {
+    comments,
+    overall: remainder.join('\n\n'),
+  };
+};
+
 const MarkingCard = ({ application, existingMark, onSave }: any) => {
-  // Parse rubric weights from JSONB if needed
-  const parseRubricWeights = (): Record<string, number> => {
-    if (!existingMark?.rubric_weights) {
-      return {
-        Requirements: 15,
-        Design: 15,
-        Implementation: 25,
-        Testing: 10,
-        Documentation: 15,
-        Presentation: 10,
-        Teamwork: 10,
-      };
-    }
-    if (typeof existingMark.rubric_weights === 'object') {
-      return existingMark.rubric_weights as Record<string, number>;
-    }
+  const parseStoredScores = () => {
+    const stored = existingMark?.rubric_scores;
+    if (!stored) return {} as Record<string, number>;
+    if (typeof stored === 'object') return stored as Record<string, number>;
     try {
-      return typeof existingMark.rubric_weights === 'string' 
-        ? JSON.parse(existingMark.rubric_weights)
-        : existingMark.rubric_weights;
+      return JSON.parse(stored as string) as Record<string, number>;
     } catch {
-      return {
-        Requirements: 15,
-        Design: 15,
-        Implementation: 25,
-        Testing: 10,
-        Documentation: 15,
-        Presentation: 10,
-        Teamwork: 10,
-      };
+      return {} as Record<string, number>;
     }
   };
 
-  // Parse rubric scores from JSONB if needed
-  const parseRubricScores = (weights: Record<string, number>): Record<string, number> => {
-    if (!existingMark?.rubric_scores) {
-      return Object.keys(weights).reduce((acc: any, k) => { acc[k] = 0; return acc; }, {});
-    }
-    if (typeof existingMark.rubric_scores === 'object') {
-      return existingMark.rubric_scores as Record<string, number>;
-    }
-    try {
-      return typeof existingMark.rubric_scores === 'string'
-        ? JSON.parse(existingMark.rubric_scores)
-        : existingMark.rubric_scores;
-    } catch {
-      return Object.keys(weights).reduce((acc: any, k) => { acc[k] = 0; return acc; }, {});
-    }
-  };
+  const storedScores = parseStoredScores();
+  const { comments: parsedComments, overall: parsedOverall } = parseFeedbackSections(existingMark?.feedback);
 
-  const defaultWeights = parseRubricWeights();
-  const [rubricWeights, setRubricWeights] = useState<Record<string, number>>(defaultWeights);
-  const initialScores = parseRubricScores(defaultWeights);
-  const [rubricScores, setRubricScores] = useState<Record<string, number>>(initialScores);
+  const [sectionGrades, setSectionGrades] = useState<Record<string, GradeKey>>(() => {
+    return SECTION_CONFIG.reduce<Record<string, GradeKey>>((acc, section) => {
+      acc[section.key] = scoreToGrade(storedScores[section.key]);
+      return acc;
+    }, {} as Record<string, GradeKey>);
+  });
+
+  const [sectionComments, setSectionComments] = useState<Record<string, string>>(parsedComments);
+  const [individualAdjustment, setIndividualAdjustment] = useState(existingMark?.individual_adjustment || 0);
+  const [overallFeedback, setOverallFeedback] = useState(parsedOverall);
+
+  const weightsRecord = SECTION_CONFIG.reduce<Record<string, number>>((acc, section) => {
+    acc[section.key] = section.weight;
+    return acc;
+  }, {} as Record<string, number>);
 
   const computeTeamMarkFromRubric = () => {
-    let total = 0;
-    for (const k of Object.keys(rubricWeights)) {
-      const weight = rubricWeights[k] ?? 0;
-      const score = rubricScores[k] ?? 0;
-      total += (weight / 100) * score;
-    }
-    return Math.round(total * 10) / 10;
+    return SECTION_CONFIG.reduce((total, section) => {
+      const grade = sectionGrades[section.key] ?? 'CR';
+      const gradeValue = GRADE_SCALE[grade].value;
+      return total + (section.weight / 100) * gradeValue;
+    }, 0);
   };
 
   const [teamMark, setTeamMark] = useState(
-    existingMark?.team_mark != null ? existingMark.team_mark : computeTeamMarkFromRubric()
+    existingMark?.team_mark != null ? existingMark.team_mark : computeTeamMarkFromRubric(),
   );
-  const [individualAdjustment, setIndividualAdjustment] = useState(existingMark?.individual_adjustment || 0);
-  const [feedback, setFeedback] = useState(existingMark?.feedback || '');
 
   const finalMark = teamMark + individualAdjustment;
 
   useEffect(() => {
-    // Recompute team mark when rubric changes
-    const computed = computeTeamMarkFromRubric();
-    setTeamMark(computed);
+    setTeamMark(Math.round(computeTeamMarkFromRubric() * 10) / 10);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rubricScores, rubricWeights]);
+  }, [sectionGrades]);
 
   const handleSave = () => {
-    const total = computeTeamMarkFromRubric();
+    const rubricScores = SECTION_CONFIG.reduce<Record<string, number>>((acc, section) => {
+      const grade = sectionGrades[section.key] ?? 'CR';
+      acc[section.key] = GRADE_SCALE[grade].value;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const combinedFeedback = [
+      ...SECTION_CONFIG.map((section) => {
+        const note = sectionComments[section.key]?.trim();
+        return note ? `${section.key}:\n${note}` : null;
+      }).filter(Boolean),
+      overallFeedback.trim() ? overallFeedback.trim() : null,
+    ]
+      .filter(Boolean)
+      .join('\n\n');
+
     onSave(
-      application.applicant_id, // This is team_id for team applications
-      total,
+      application.applicant_id,
+      teamMark,
       individualAdjustment,
-      feedback,
+      combinedFeedback,
       rubricScores,
-      total,
-      rubricWeights,
+      teamMark,
+      weightsRecord,
     );
   };
 
@@ -580,9 +603,7 @@ const MarkingCard = ({ application, existingMark, onSave }: any) => {
           {application.team?.name || `Team ${application.applicant_id.slice(0, 8)}`}
         </CardTitle>
         {application.team?.description && (
-          <p className="text-sm text-muted-foreground mb-2">
-            {application.team.description}
-          </p>
+          <p className="text-sm text-muted-foreground mb-2">{application.team.description}</p>
         )}
         {application.team?.members && application.team.members.length > 0 && (
           <div className="mt-2">
@@ -598,110 +619,100 @@ const MarkingCard = ({ application, existingMark, onSave }: any) => {
           </div>
         )}
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
-            <Label>Team Mark (from rubric)</Label>
-            <div className="p-2 bg-muted rounded font-medium">
-              {teamMark.toFixed(1)}
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-muted p-4 rounded-lg">
+            <p className="text-xs font-medium text-muted-foreground">Rubric Overview</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {(Object.entries(GRADE_SCALE) as Array<[GradeKey, typeof GRADE_SCALE[GradeKey]]>).map(([grade, meta]) => (
+                <li key={grade}>
+                  <span className="font-semibold mr-2">{grade}</span>
+                  <span className="text-muted-foreground">{meta.description}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-muted p-4 rounded-lg">
+            <p className="text-xs font-medium text-muted-foreground">Team Mark (weighted)</p>
+            <p className="mt-2 text-2xl font-bold">{teamMark.toFixed(1)}</p>
+          </div>
+          <div className="bg-muted p-4 rounded-lg space-y-2">
+            <div>
+              <Label htmlFor="team-adjustment" className="text-xs text-muted-foreground">Adjustment (±)</Label>
+              <Input
+                id="team-adjustment"
+                type="number"
+                min="-50"
+                max="50"
+                step="0.5"
+                value={individualAdjustment}
+                onChange={(e) => setIndividualAdjustment(parseFloat(e.target.value) || 0)}
+                placeholder="0.0"
+              />
             </div>
-          </div>
-          
-          <div>
-            <Label htmlFor="team-adjustment">Team Adjustment</Label>
-            <Input
-              id="team-adjustment"
-              type="number"
-              min="-50"
-              max="50"
-              step="0.5"
-              value={individualAdjustment}
-              onChange={(e) => setIndividualAdjustment(parseFloat(e.target.value) || 0)}
-              placeholder="0.0"
-            />
-            <p className="text-xs text-muted-foreground mt-1">Adjustment to team mark (±)</p>
-          </div>
-          
-          <div>
-            <Label>Final Mark</Label>
-            <div className="p-2 bg-muted rounded font-medium">
-              {finalMark.toFixed(1)}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Final Mark</p>
+              <p className="text-2xl font-bold">{finalMark.toFixed(1)}</p>
             </div>
           </div>
         </div>
 
-        {/* UNSW-style rubric */}
-        <div className="mb-4">
-          <Label className="mb-2 block">Rubric</Label>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left">
-                  <th className="p-2">Criterion</th>
-                  <th className="p-2">Weight %</th>
-                  <th className="p-2">Grade</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.keys(rubricWeights).map((criterion) => (
-                  <tr key={criterion} className="border-t">
-                    <td className="p-2 font-medium">{criterion}</td>
-                    <td className="p-2">
-                      <Input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={rubricWeights[criterion]}
-                        onChange={(e) => setRubricWeights({ ...rubricWeights, [criterion]: Number(e.target.value) || 0 })}
-                      />
-                    </td>
-                    <td className="p-2">
-                      <Select
-                        value={String(rubricScores[criterion])}
-                        onValueChange={(v) => setRubricScores({ ...rubricScores, [criterion]: Number(v) })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select grade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="85">HD (85)</SelectItem>
-                          <SelectItem value="75">DN (75)</SelectItem>
-                          <SelectItem value="65">CR (65)</SelectItem>
-                          <SelectItem value="50">PS (50)</SelectItem>
-                          <SelectItem value="0">FL (0)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="text-xs text-muted-foreground mt-2">Team mark is computed as weighted sum of grades.</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {SECTION_CONFIG.map((section) => {
+            const grade = sectionGrades[section.key] ?? 'CR';
+            return (
+              <div key={section.key} className="border rounded-lg p-4 space-y-3">
+                <div>
+                  <p className="text-sm font-semibold">{section.key}</p>
+                  <p className="text-xs text-muted-foreground">Weight {section.weight}% • {section.description}</p>
+                </div>
+                <Select
+                  value={grade}
+                  onValueChange={(value: GradeKey) => {
+                    setSectionGrades({ ...sectionGrades, [section.key]: value });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select grade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.entries(GRADE_SCALE) as Array<[GradeKey, typeof GRADE_SCALE[GradeKey]]>).map(([key, option]) => (
+                      <SelectItem key={key} value={key}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Comments</Label>
+                  <Textarea
+                    className="mt-1"
+                    rows={4}
+                    value={sectionComments[section.key] ?? ''}
+                    onChange={(e) => setSectionComments({ ...sectionComments, [section.key]: e.target.value })}
+                    placeholder={`Notes on ${section.key.toLowerCase()}…`}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        <div className="mb-4">
-          <Label htmlFor="feedback">Feedback</Label>
+        <div className="space-y-2">
+          <Label className="text-sm font-medium text-muted-foreground">Overall comments</Label>
           <Textarea
-            id="feedback"
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-            placeholder="Optional feedback for the student..."
-            rows={3}
+            rows={4}
+            value={overallFeedback}
+            onChange={(e) => setOverallFeedback(e.target.value)}
+            placeholder="Summary feedback that students will see…"
           />
         </div>
 
         <div className="flex justify-between items-center">
           <div className="text-sm text-muted-foreground">
-            {existingMark?.released ? (
-              <span className="text-green-600">Grade Released</span>
-            ) : (
-              <span>Grade Not Released</span>
-            )}
+            {existingMark?.released ? <span className="text-green-600">Grade Released</span> : <span>Grade Not Released</span>}
           </div>
-          <Button onClick={handleSave}>
-            Save Mark
-          </Button>
+          <Button onClick={handleSave}>Save Mark</Button>
         </div>
       </CardContent>
     </Card>

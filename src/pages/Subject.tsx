@@ -7,9 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
 import { PartnerSuggestions } from "@/components/subject/PartnerSuggestions";
 import { CreateGroup } from "@/components/subject/CreateGroup";
-import { ProjectList } from "@/components/subject/ProjectList";
 import { MyTeams } from "@/components/subject/MyTeams";
 import { TeamProjectRecommendations } from "@/components/subject/TeamProjectRecommendations";
+import { StudentAnnouncements } from "@/components/StudentAnnouncements";
+import { StudentMarks } from "@/components/StudentMarks";
 
 export default function Subject() {
   const { subjectCode } = useParams<{ subjectCode: string }>();
@@ -134,12 +135,13 @@ export default function Subject() {
         </div>
 
         <Tabs defaultValue="partners" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-6 mb-6">
             <TabsTrigger value="partners">Partners</TabsTrigger>
             <TabsTrigger value="group">Make Group</TabsTrigger>
             <TabsTrigger value="myteams">My Teams</TabsTrigger>
             <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
-            
+            <TabsTrigger value="marks">Marks</TabsTrigger>
+            <TabsTrigger value="announcements">Announcements</TabsTrigger>
           </TabsList>
 
           <TabsContent value="partners">
@@ -181,11 +183,11 @@ export default function Subject() {
   />
 </TabsContent>
 
-<TabsContent value="projects">
-  <ProjectList 
-    subjectCode={subjectCode!} 
-    userId={user.id} 
-  />
+<TabsContent value="marks">
+  <StudentMarks />
+</TabsContent>
+<TabsContent value="announcements">
+  <StudentAnnouncements limit={10} />
 </TabsContent>
         </Tabs>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 export const ApplicationManagement = () => {
   const [applications, setApplications] = useState<any[]>([]);
@@ -15,11 +16,36 @@ export const ApplicationManagement = () => {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [statusUpdate, setStatusUpdate] = useState({ status: '', note: '' });
   const { toast } = useToast();
-  const [augmented, setAugmented] = useState<Record<string, { matchPercentage: number; matchedSkills: string[]; teamSize: number; probableMark: number }>>({});
+  const [augmented, setAugmented] = useState<Record<string, { matchPercentage: number; matchedSkills: string[]; teamSize: number }>>({});
   const [responses, setResponses] = useState<Record<string, { q1: string; q2: string }>>({});
   const [teamNames, setTeamNames] = useState<Record<string, string>>({});
   const [teamDetails, setTeamDetails] = useState<Record<string, any[]>>({});
   const [openTeamForAppId, setOpenTeamForAppId] = useState<string | null>(null);
+  const [recommendations, setRecommendations] = useState<Record<string, {
+    bestApplicationId: string | null;
+    summary?: string | null;
+    ranking: Array<{
+      applicationId: string;
+      suitabilityScore: number | null;
+      strengths?: string;
+      concerns?: string;
+    }>;
+  }>>({});
+  const [evaluatingProjectId, setEvaluatingProjectId] = useState<string | null>(null);
+
+  const teamApplicationMeta = useMemo(() => {
+    const map: Record<string, { teamCount: number; firstTeamApplicationId: string | null }> = {};
+    applications.forEach((app) => {
+      if (app.applicant_type !== 'team') return;
+      const entry = map[app.project_id] ?? { teamCount: 0, firstTeamApplicationId: null };
+      entry.teamCount += 1;
+      if (!entry.firstTeamApplicationId) {
+        entry.firstTeamApplicationId = app.id;
+      }
+      map[app.project_id] = entry;
+    });
+    return map;
+  }, [applications]);
 
   useEffect(() => {
     fetchApplications();
@@ -52,7 +78,7 @@ export const ApplicationManagement = () => {
   };
 
   const augmentApplications = async (apps: any[]) => {
-    const result: Record<string, { matchPercentage: number; matchedSkills: string[]; teamSize: number; probableMark: number }> = {};
+    const result: Record<string, { matchPercentage: number; matchedSkills: string[]; teamSize: number }> = {};
     for (const app of apps) {
       const projectSkills: string[] = [
         ...(app.projects?.required_skills || []),
@@ -93,9 +119,7 @@ export const ApplicationManagement = () => {
 
       const matched = applicantSkills.filter((s) => projectSkills.includes(s));
       const matchPercentage = projectSkills.length > 0 ? Math.round((matched.length / projectSkills.length) * 100) : 0;
-      const probableMark = Math.min(100, Math.round(60 + matchPercentage * 0.3 + Math.min(10, teamSize * 2)));
-
-      result[app.id] = { matchPercentage, matchedSkills: matched, teamSize, probableMark };
+      result[app.id] = { matchPercentage, matchedSkills: matched, teamSize };
     }
     setAugmented(result);
   };
@@ -179,6 +203,68 @@ export const ApplicationManagement = () => {
     }
   };
 
+  const handleRecommendTeam = async (projectId: string) => {
+    try {
+      setEvaluatingProjectId(projectId);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Not signed in",
+          description: "Please sign in again and retry.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/evaluate-team-applications`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabaseAnonKey,
+        },
+        body: JSON.stringify({
+          projectId,
+          authToken: session.access_token,
+        }),
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error || 'Failed to evaluate applications');
+      }
+
+      toast({
+        title: "Recommendation ready",
+        description: payload.bestApplicationId
+          ? "AI suggested the best-fit team for this project."
+          : "AI review complete, but no clear standout was found.",
+      });
+
+      setRecommendations(prev => ({
+        ...prev,
+        [projectId]: {
+          bestApplicationId: payload.bestApplicationId ?? null,
+          summary: payload.summary ?? null,
+          ranking: Array.isArray(payload.ranking) ? payload.ranking : [],
+        },
+      }));
+    } catch (error: any) {
+      console.error("handleRecommendTeam error:", error);
+      toast({
+        title: "Recommendation failed",
+        description: error?.message || "Unable to generate recommendation. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setEvaluatingProjectId(null);
+    }
+  };
+
   const handleStatusUpdate = async () => {
     if (!selectedApplication || !statusUpdate.status) {
       toast({
@@ -235,8 +321,22 @@ export const ApplicationManagement = () => {
       </div>
 
       <div className="space-y-4">
-        {applications.map((application) => (
-          <Card key={application.id}>
+        {applications.map((application) => {
+          const meta = teamApplicationMeta[application.project_id];
+          const multipleTeamsForProject = (meta?.teamCount ?? 0) > 1;
+          const isPrimaryTeamForProject = multipleTeamsForProject && meta?.firstTeamApplicationId === application.id;
+          const recommendation = recommendations[application.project_id];
+          const rankingEntry = recommendation?.ranking?.find((entry) => entry.applicationId === application.id);
+          const rankingPosition = recommendation?.ranking?.findIndex((entry) => entry.applicationId === application.id);
+          const isRecommended = recommendation?.bestApplicationId === application.id;
+          const showRecommendButton = application.applicant_type === 'team'
+            && isPrimaryTeamForProject
+            && !recommendation
+            && evaluatingProjectId !== application.project_id;
+          const showEvaluating = isPrimaryTeamForProject && evaluatingProjectId === application.project_id;
+
+          return (
+          <Card key={application.id} className={cn(isRecommended && "border-emerald-400/60 shadow-[0_0_0_1px_rgba(16,185,129,0.35)]")}>
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
@@ -254,6 +354,43 @@ export const ApplicationManagement = () => {
                   <p className="text-sm text-muted-foreground">
                     Type: {application.applicant_type}
                   </p>
+                  {recommendation && (
+                    <div className="mt-3 space-y-2">
+                      {isRecommended && (
+                        <Badge variant="default" className="bg-emerald-500/20 text-emerald-600 border border-emerald-500/30">
+                          Recommended by AI
+                        </Badge>
+                      )}
+                      {rankingPosition != null && rankingPosition > -1 && (
+                        <div className="text-xs text-muted-foreground">
+                          AI Ranking: #{rankingPosition + 1}
+                          {rankingEntry?.suitabilityScore != null && (
+                            <span className="ml-1 text-foreground font-semibold">
+                              ({rankingEntry.suitabilityScore}/100)
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {isRecommended && recommendation.summary && (
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {recommendation.summary}
+                        </p>
+                      )}
+                      {!isRecommended && rankingEntry?.strengths && (
+                        <div className="bg-muted p-3 rounded-md text-xs leading-relaxed">
+                          <p className="font-semibold text-foreground">AI Notes</p>
+                          <p className="mt-1 text-muted-foreground">
+                            <span className="font-semibold text-foreground">Strengths:</span> {rankingEntry.strengths}
+                          </p>
+                          {rankingEntry.concerns && (
+                            <p className="mt-1 text-muted-foreground">
+                              <span className="font-semibold text-foreground">Concerns:</span> {rankingEntry.concerns}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant={getStatusBadgeVariant(application.status)}>
@@ -356,6 +493,20 @@ export const ApplicationManagement = () => {
                     </DialogContent>
                   </Dialog>
                 )}
+                {showRecommendButton && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleRecommendTeam(application.project_id)}
+                  >
+                    Let AI pick best team
+                  </Button>
+                )}
+                {showEvaluating && (
+                  <Button variant="secondary" size="sm" disabled>
+                    Evaluating…
+                  </Button>
+                )}
                 <Button 
                   variant="default"
                   size="sm"
@@ -419,10 +570,6 @@ export const ApplicationManagement = () => {
                   <div className="text-xs text-muted-foreground">Matched Skills</div>
                   <div className="text-sm">{(augmented[application.id]?.matchedSkills || []).join(', ') || '—'}</div>
                 </div>
-                <div className="p-3 bg-muted rounded">
-                  <div className="text-xs text-muted-foreground">Probable Mark</div>
-                  <div className="text-xl font-bold">{augmented[application.id]?.probableMark ?? 60}</div>
-                </div>
               </div>
               {(responses[application.id]?.q1 || responses[application.id]?.q2) && (
                 <div className="mt-3 p-3 bg-muted rounded">
@@ -446,7 +593,7 @@ export const ApplicationManagement = () => {
               )}
             </CardContent>
           </Card>
-        ))}
+        )})}
       </div>
 
       {applications.length === 0 && (
