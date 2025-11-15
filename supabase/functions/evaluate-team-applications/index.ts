@@ -21,6 +21,7 @@ interface ApplicationSummary {
     q1?: string | null;
     q2?: string | null;
   };
+  subjectCode?: string | null;
   submittedAt?: string | null;
 }
 
@@ -133,7 +134,7 @@ serve(async (req) => {
 
     const { data: responsesData } = await serviceClient
       .from("application_responses" as any)
-      .select("application_id, q1, q2")
+      .select("application_id, q1, q2, subject_code")
       .in("application_id", applicationIds);
 
     const { data: teamsData } = await serviceClient
@@ -162,9 +163,9 @@ serve(async (req) => {
         .in("user_id", memberUserIds)
       : { data: [] };
 
-    const responsesMap = new Map<string, { q1?: string | null; q2?: string | null }>();
+    const responsesMap = new Map<string, { q1?: string | null; q2?: string | null; subject_code?: string | null }>();
     (responsesData || []).forEach((response) => {
-      responsesMap.set(response.application_id, { q1: response.q1, q2: response.q2 });
+      responsesMap.set(response.application_id, { q1: response.q1, q2: response.q2, subject_code: response.subject_code });
     });
 
     const teamsMap = new Map<string, { name: string; description?: string | null }>();
@@ -229,6 +230,7 @@ serve(async (req) => {
         matchingSkills,
         missingRequiredSkills,
         responses,
+        subjectCode: responses.subject_code,
         submittedAt: application.created_at,
       };
     });
@@ -324,6 +326,7 @@ Application ${index + 1} — ID: ${app.applicationId}
 Team Name: ${app.teamName}
 Team Size: ${app.teamSize}
 Team Description: ${app.teamDescription ?? "N/A"}
+Subject Code: ${app.subjectCode ?? "Unknown"}
 Members:
 ${memberDetails || "No members listed"}
 Combined Skills: ${app.combinedSkills.join(", ") || "None"}

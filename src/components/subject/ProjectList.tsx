@@ -143,6 +143,7 @@ export function ProjectList({ subjectCode, userId }: ProjectListProps) {
           application_id: app.id,
           q1: teamAnswer1.trim(),
           q2: teamAnswer2.trim(),
+          subject_code: subjectCode,
         });
       if (respError) throw respError;
 
@@ -264,13 +265,23 @@ export function ProjectList({ subjectCode, userId }: ProjectListProps) {
                 Apply as Individual
               </Button>
               <Dialog open={teamDialogForProjectId === project.id} onOpenChange={(open) => {
-                if (!open) { setTeamDialogForProjectId(null); setSelectedTeamId(""); }
+                if (!open) {
+                  setTeamDialogForProjectId(null);
+                  setSelectedTeamId("");
+                  setTeamAnswer1("");
+                  setTeamAnswer2("");
+                }
               }}>
                 <DialogTrigger asChild>
                   <Button
                     variant="outline"
                     className="flex-1"
-                    onClick={() => setTeamDialogForProjectId(project.id)}
+                    onClick={() => {
+                      if (!selectedTeamId && myCreatorTeams.length > 0) {
+                        setSelectedTeamId(myCreatorTeams[0].id);
+                      }
+                      setTeamDialogForProjectId(project.id);
+                    }}
                     disabled={myCreatorTeams.length === 0}
                   >
                     Apply as Team

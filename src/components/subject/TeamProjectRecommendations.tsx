@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Briefcase, Clock, Users, TrendingUp, Star, Zap, Target, CheckCircle } from "lucide-react";
 
@@ -19,6 +22,9 @@ export function TeamProjectRecommendations({ subjectCode, userId }: TeamProjectR
   const [projects, setProjects] = useState<any[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [teamDialogForProjectId, setTeamDialogForProjectId] = useState<string | null>(null);
+  const [teamAnswer1, setTeamAnswer1] = useState("");
+  const [teamAnswer2, setTeamAnswer2] = useState("");
 
   useEffect(() => {
     fetchUserTeams();
@@ -168,18 +174,42 @@ export function TeamProjectRecommendations({ subjectCode, userId }: TeamProjectR
 
   const handleApplyAsTeam = async (projectId: string) => {
     try {
-      const { error } = await supabase
+      if (!selectedTeam) {
+        toast.error("Please select a team");
+        return;
+      }
+      if (!teamAnswer1.trim() || !teamAnswer2.trim()) {
+        toast.error("Please answer both questions");
+        return;
+      }
+
+      const { data: app, error: appError } = await supabase
         .from("applications")
         .insert({
           project_id: projectId,
-          applicant_type: "team",
           applicant_id: selectedTeam,
-          status: "pending"
-        });
+          applicant_type: "team",
+          status: "pending",
+        })
+        .select()
+        .single();
+      if (appError) throw appError;
 
-      if (error) throw error;
+      // Save team answers in a separate table
+      const { error: respError } = await supabase
+        .from("application_responses" as any)
+        .insert({
+          application_id: app.id,
+          q1: teamAnswer1.trim(),
+          q2: teamAnswer2.trim(),
+          subject_code: subjectCode,
+        });
+      if (respError) throw respError;
 
       toast.success("Team application submitted successfully!");
+      setTeamDialogForProjectId(null);
+      setTeamAnswer1("");
+      setTeamAnswer2("");
     } catch (error: any) {
       console.error("Error applying:", error);
       toast.error(error.message || "Failed to submit application");
@@ -202,11 +232,11 @@ export function TeamProjectRecommendations({ subjectCode, userId }: TeamProjectR
 
   if (teams.length === 0) {
     return (
-      <Card>
+      <Card className="rounded-3xl border border-white/10 bg-black/70 text-white/70">
         <CardContent className="flex flex-col items-center justify-center p-12 text-center">
-          <Users className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No teams yet</h3>
-          <p className="text-muted-foreground">
+          <Users className="mb-4 h-12 w-12 text-white/40" />
+          <h3 className="mb-2 text-lg font-semibold text-white">No teams yet</h3>
+          <p className="text-white/55">
             Create a team first to get project recommendations based on your team's combined skills!
           </p>
         </CardContent>
@@ -216,25 +246,25 @@ export function TeamProjectRecommendations({ subjectCode, userId }: TeamProjectR
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="rounded-3xl border border-white/10 bg-black/70 text-white/75">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="w-6 h-6 text-primary" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Target className="h-6 w-6 text-sky-400" />
             Team Project Recommendations
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-white/55">
             Get personalized project recommendations based on your team's combined skillset
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Select Your Team</label>
+              <label className="mb-2 block text-sm font-medium text-white/70">Select Your Team</label>
               <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl border-white/15 bg-black/40 text-white focus-visible:ring-0">
                   <SelectValue placeholder="Choose a team" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="border border-white/10 bg-[#0b111a] text-white">
                   {teams.map((team: any) => (
                     <SelectItem key={team.id} value={team.id}>
                       {team.name}
@@ -248,58 +278,61 @@ export function TeamProjectRecommendations({ subjectCode, userId }: TeamProjectR
       </Card>
 
       {loading ? (
-        <Card>
+        <Card className="rounded-3xl border border-white/10 bg-black/70 text-white/70">
           <CardContent className="flex items-center justify-center p-12">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">Analyzing team skills and matching projects...</p>
+              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-sky-400" />
+              <p className="text-white/55">Analyzing team skills and matching projects...</p>
             </div>
           </CardContent>
         </Card>
       ) : recommendations.length === 0 ? (
-        <Card>
+        <Card className="rounded-3xl border border-white/10 bg-black/70 text-white/70">
           <CardContent className="flex flex-col items-center justify-center p-12 text-center">
-            <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No matching projects found</h3>
-            <p className="text-muted-foreground">
+            <Briefcase className="mb-4 h-12 w-12 text-white/40" />
+            <h3 className="mb-2 text-lg font-semibold text-white">No matching projects found</h3>
+            <p className="text-white/55">
               No projects match your team's current skillset. Try adding more team members with diverse skills!
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
-          <Card className="bg-gradient-to-r from-blue-500/5 to-purple-500/5 border-blue-500/20">
+          <Card className="rounded-3xl border border-white/12 bg-black/70 text-white/75 shadow-[0_20px_60px_-40px_rgba(56,189,248,0.45)]">
             <CardHeader>
-              <div className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-yellow-500" />
+              <div className="flex items-center gap-2 text-white">
+                <Zap className="h-5 w-5 text-amber-300" />
                 <CardTitle className="text-lg">
                   Found {recommendations.length} Matching Projects
                 </CardTitle>
               </div>
-              <CardDescription>
+              <CardDescription className="text-white/60">
                 Projects are ranked by how well they match your team's skills
               </CardDescription>
             </CardHeader>
           </Card>
 
           {recommendations.map((project, index) => (
-            <Card key={project.id} className="hover-lift">
+            <Card
+              key={project.id}
+              className="rounded-3xl border border-white/12 bg-black/75 text-white/80 shadow-[0_25px_65px_-40px_rgba(56,189,248,0.55)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/50"
+            >
               <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
+                <div className="mb-4 flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Badge variant="outline" className="text-xs">
+                    <div className="mb-2 flex items-center gap-3">
+                      <Badge variant="outline" className="border-white/20 text-xs text-white/70">
                         #{index + 1}
                       </Badge>
-                      <h3 className="text-xl font-semibold">{project.title}</h3>
+                      <h3 className="text-xl font-semibold text-white">{project.title}</h3>
                     </div>
-                    <p className="text-muted-foreground mb-3">{project.description}</p>
+                    <p className="mb-3 text-white/60">{project.description}</p>
                   </div>
                   <div className="ml-4 text-right">
                     <div className={`text-3xl font-bold ${getMatchColor(project.matchScore)}`}>
                       {project.matchScore}%
                     </div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                    <div className="flex items-center gap-1 text-xs text-white/50">
                       <Star className="w-3 h-3 fill-current" />
                       Match Score
                     </div>
@@ -307,39 +340,39 @@ export function TeamProjectRecommendations({ subjectCode, userId }: TeamProjectR
                 </div>
 
                 {/* Project Info */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Users className="h-4 w-4 text-muted-foreground" />
+                <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-4">
+                  <div className="flex items-center gap-2 text-sm text-white/60">
+                    <Users className="h-4 w-4 text-white/40" />
                     <span>
                       {project.team_size_min}-{project.team_size_max} members
                     </span>
                     {project.sizeCompatible ? (
                       <CheckCircle className="h-4 w-4 text-green-500" />
                     ) : (
-                      <Badge variant="destructive" className="text-xs">
+                      <Badge variant="destructive" className="bg-orange-500/20 text-orange-200">
                         Size mismatch
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-sm text-white/60">
+                    <Clock className="h-4 w-4 text-white/40" />
                     <span>{project.estimated_duration}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-sm text-white/60">
+                    <TrendingUp className="h-4 w-4 text-white/40" />
                     <span>{project.difficulty_level}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Briefcase className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-sm text-white/60">
+                    <Briefcase className="h-4 w-4 text-white/40" />
                     <span>{project.category}</span>
                   </div>
                 </div>
 
                 {/* Skills Breakdown */}
-                <div className="space-y-3 mb-4">
+                <div className="mb-4 space-y-3">
                   {project.matchedRequired.length > 0 && (
                     <div>
-                      <div className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <div className="mb-2 flex items-center gap-2 text-sm font-medium text-white">
                         <CheckCircle className="w-4 h-4 text-green-500" />
                         Matched Required Skills ({project.matchedRequired.length})
                       </div>
@@ -355,7 +388,7 @@ export function TeamProjectRecommendations({ subjectCode, userId }: TeamProjectR
 
                   {project.missingRequired.length > 0 && (
                     <div>
-                      <div className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <div className="mb-2 flex items-center gap-2 text-sm font-medium text-white">
                         <TrendingUp className="w-4 h-4 text-orange-500" />
                         Missing Required Skills ({project.missingRequired.length})
                       </div>
@@ -371,7 +404,7 @@ export function TeamProjectRecommendations({ subjectCode, userId }: TeamProjectR
 
                   {project.matchedPreferred.length > 0 && (
                     <div>
-                      <div className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <div className="mb-2 flex items-center gap-2 text-sm font-medium text-white">
                         <Star className="w-4 h-4 text-blue-500" />
                         Matched Preferred Skills ({project.matchedPreferred.length})
                       </div>
@@ -387,29 +420,91 @@ export function TeamProjectRecommendations({ subjectCode, userId }: TeamProjectR
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3 pt-4 border-t">
-                  <Button
-                    onClick={() => handleApplyAsTeam(project.id)}
-                    className={`flex-1 ${getMatchBadgeColor(project.matchScore)}`}
-                    disabled={!project.sizeCompatible}
+                <div className="flex gap-3 border-t border-white/10 pt-4">
+                  <Dialog 
+                    open={teamDialogForProjectId === project.id} 
+                    onOpenChange={(open) => {
+                      if (!open) { 
+                        setTeamDialogForProjectId(null); 
+                        setTeamAnswer1("");
+                        setTeamAnswer2("");
+                      }
+                    }}
                   >
-                    {project.sizeCompatible ? (
-                      <>
-                        <Users className="w-4 h-4 mr-2" />
-                        Apply as Team
-                      </>
-                    ) : (
-                      <>Team size incompatible</>
-                    )}
-                  </Button>
-                  <Button variant="outline" className="flex-1">
-                    View Details
-                  </Button>
+                    <DialogTrigger asChild>
+                      <Button
+                        onClick={() => {
+                          if (!selectedTeam && teams.length > 0) {
+                            setSelectedTeam(teams[0].id);
+                          }
+                          setTeamDialogForProjectId(project.id);
+                        }}
+                        className={`flex-1 ${getMatchBadgeColor(project.matchScore)}`}
+                        disabled={!project.sizeCompatible}
+                      >
+                        {project.sizeCompatible ? (
+                          <>
+                            <Users className="w-4 h-4 mr-2" />
+                            Apply as Team
+                          </>
+                        ) : (
+                          <>Team size incompatible</>
+                        )}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="border border-white/10 bg-[#0b111a] text-white">
+                      <DialogHeader>
+                        <DialogTitle className="text-white">Apply as Team</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-white/70">Select Team</Label>
+                          <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+                            <SelectTrigger className="border-white/15 bg-black/40 text-white">
+                              <SelectValue placeholder="Choose a team" />
+                            </SelectTrigger>
+                            <SelectContent className="border border-white/10 bg-[#0b111a] text-white">
+                              {teams.map((t: any) => (
+                                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-white/70">Why is your team a good fit for this project?</Label>
+                          <Textarea
+                            placeholder="Describe relevant experience and strengths"
+                            value={teamAnswer1}
+                            onChange={(e) => setTeamAnswer1(e.target.value)}
+                            rows={3}
+                            className="border-white/15 bg-black/40 text-white placeholder:text-white/40"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-white/70">Outline your proposed approach or plan</Label>
+                          <Textarea
+                            placeholder="Briefly outline how you plan to execute"
+                            value={teamAnswer2}
+                            onChange={(e) => setTeamAnswer2(e.target.value)}
+                            rows={3}
+                            className="border-white/15 bg-black/40 text-white placeholder:text-white/40"
+                          />
+                        </div>
+                        <Button 
+                          onClick={() => handleApplyAsTeam(project.id)} 
+                          disabled={!selectedTeam || !teamAnswer1.trim() || !teamAnswer2.trim()}
+                          className="w-full bg-sky-500 text-white hover:bg-sky-400"
+                        >
+                          Submit Application
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
 
                 {!project.sizeCompatible && (
-                  <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-                    <p className="text-xs text-orange-700 dark:text-orange-300">
+                  <div className="mt-3 rounded-lg border border-orange-500/25 bg-orange-500/10 p-3">
+                    <p className="text-xs text-orange-200">
                       ⚠️ Your team has {project.teamSize} members, but this project requires {project.team_size_min}-{project.team_size_max} members.
                     </p>
                   </div>

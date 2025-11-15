@@ -260,36 +260,38 @@ export const ProjectManagement = () => {
   };
 
   if (loading) {
-    return <div>Loading projects...</div>;
+    return (
+      <div className="flex items-center justify-center py-12 text-white/60">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-400 border-t-transparent" />
+      </div>
+    );
   }
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Project Management
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h2 className="text-2xl font-bold text-white">Project Management</h2>
+          <p className="mt-1 text-sm text-white/60">
             Create, edit, and manage all projects
           </p>
         </div>
         <div className="flex gap-2">
           <Dialog open={isCsvDialogOpen} onOpenChange={setIsCsvDialogOpen}>
-                              <DialogTrigger asChild>
-                      <Button variant="outline" className="gap-2">
-                        <Upload className="w-4 h-4" />
-                        Import CSV
-                      </Button>
-                    </DialogTrigger>
-            <DialogContent>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2 bg-transparent border-white/20 text-white hover:bg-white/10">
+                <Upload className="h-4 w-4" />
+                Import CSV
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="border border-white/10 bg-[#0b111a] text-white">
               <DialogHeader>
-                <DialogTitle>Import Projects from CSV</DialogTitle>
+                <DialogTitle className="text-white">Import Projects from CSV</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="csv-file">CSV File</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
+                  <Label htmlFor="csv-file" className="text-white/70">CSV File</Label>
+                  <p className="mb-2 text-sm text-white/60">
                     Upload a CSV file with project details. Each row will be processed using AI to extract project information.
                   </p>
                   <Input
@@ -298,19 +300,20 @@ export const ProjectManagement = () => {
                     accept=".csv"
                     onChange={handleCsvUpload}
                     disabled={csvUploading}
+                    className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                   />
                 </div>
                 {csvUploading && (
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-sm text-white/70">
                       <span>Processing CSV...</span>
                       <span>{csvProgress}%</span>
                     </div>
                     <Progress value={csvProgress} />
                   </div>
                 )}
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p className="font-medium">CSV Format:</p>
+                <div className="space-y-1 text-sm text-white/60">
+                  <p className="font-medium text-white/70">CSV Format:</p>
                   <p>Your CSV can include columns like: project name, description, skills, category, capacity, team size, etc.</p>
                   <p>The AI will automatically extract and structure the information.</p>
                 </div>
@@ -318,48 +321,50 @@ export const ProjectManagement = () => {
             </DialogContent>
           </Dialog>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                              <DialogTrigger asChild>
-                      <Button onClick={resetForm} className="gap-2 bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/30">
-                        <Plus className="w-4 h-4" />
-                        Create Project
-                      </Button>
-                    </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogTrigger asChild>
+              <Button onClick={resetForm} className="gap-2 bg-sky-500 text-white hover:bg-sky-400">
+                <Plus className="h-4 w-4" />
+                Create Project
+              </Button>
+            </DialogTrigger>
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border border-white/10 bg-[#0b111a] text-white">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-white">
                 {editingProject ? 'Edit Project' : 'Create New Project'}
               </DialogTitle>
             </DialogHeader>
             
             <div className="space-y-4">
               <div>
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title" className="text-white/70">Title</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   placeholder="Project title"
+                  className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                 />
               </div>
 
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description" className="text-white/70">Description</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Project description"
                   rows={3}
+                  className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category" className="text-white/70">Category</Label>
                   <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-xl border-white/15 bg-black/40 text-white focus-visible:ring-0">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="border border-white/10 bg-[#0b111a] text-white">
                       <SelectItem value="Web Development">Web Development</SelectItem>
                       <SelectItem value="Mobile Development">Mobile Development</SelectItem>
                       <SelectItem value="Data Science">Data Science</SelectItem>
@@ -370,12 +375,12 @@ export const ProjectManagement = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="difficulty">Difficulty Level</Label>
+                  <Label htmlFor="difficulty" className="text-white/70">Difficulty Level</Label>
                   <Select value={formData.difficulty_level} onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty_level: value }))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-xl border-white/15 bg-black/40 text-white focus-visible:ring-0">
                       <SelectValue placeholder="Select difficulty" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="border border-white/10 bg-[#0b111a] text-white">
                       <SelectItem value="Beginner">Beginner</SelectItem>
                       <SelectItem value="Intermediate">Intermediate</SelectItem>
                       <SelectItem value="Advanced">Advanced</SelectItem>
@@ -386,43 +391,46 @@ export const ProjectManagement = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="capacity">Capacity (Number of Teams)</Label>
+                  <Label htmlFor="capacity" className="text-white/70">Capacity (Number of Teams)</Label>
                   <Input
                     id="capacity"
                     type="number"
                     min="1"
                     value={formData.capacity}
                     onChange={(e) => setFormData(prev => ({ ...prev, capacity: parseInt(e.target.value) || 1 }))}
+                    className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="team-min">Min Team Size</Label>
+                  <Label htmlFor="team-min" className="text-white/70">Min Team Size</Label>
                   <Input
                     id="team-min"
                     type="number"
                     min="1"
                     value={formData.team_size_min}
                     onChange={(e) => setFormData(prev => ({ ...prev, team_size_min: parseInt(e.target.value) || 1 }))}
+                    className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="team-max">Max Team Size</Label>
+                  <Label htmlFor="team-max" className="text-white/70">Max Team Size</Label>
                   <Input
                     id="team-max"
                     type="number"
                     min="1"
                     value={formData.team_size_max}
                     onChange={(e) => setFormData(prev => ({ ...prev, team_size_max: parseInt(e.target.value) || 1 }))}
+                    className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="assessors">Assessor Emails (comma-separated)</Label>
+                <Label htmlFor="assessors" className="text-white/70">Assessor Emails (comma-separated)</Label>
                 <Input
                   id="assessors"
                   value={formData.assessor_ids.join(', ')}
@@ -431,14 +439,15 @@ export const ProjectManagement = () => {
                     assessor_ids: e.target.value.split(',').map(email => email.trim()).filter(email => email)
                   }))}
                   placeholder="assessor1@unsw.edu.au, assessor2@unsw.edu.au"
+                  className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                 />
               </div>
 
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-white/20 text-white hover:bg-white/10">
                   Cancel
                 </Button>
-                <Button onClick={handleSubmit}>
+                <Button onClick={handleSubmit} className="bg-sky-500 text-white hover:bg-sky-400">
                   {editingProject ? 'Update' : 'Create'} Project
                 </Button>
               </div>
@@ -448,46 +457,45 @@ export const ProjectManagement = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {projects.map((project) => (
           <Card 
             key={project.id} 
-            className="relative overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg group"
+            className="relative overflow-hidden rounded-3xl border border-white/10 bg-black/70 text-white/80 shadow-[0_25px_65px_-40px_rgba(56,189,248,0.45)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/50"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardHeader className="relative">
-              <div className="flex justify-between items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="flex items-center gap-2 mb-2 text-lg">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="mb-2 flex items-center gap-2 text-lg text-white">
                     <span className="truncate">{project.title}</span>
                     {project.archived && (
-                      <Badge variant="secondary" className="shrink-0">Archived</Badge>
+                      <Badge variant="secondary" className="shrink-0 bg-white/15 text-white/80">Archived</Badge>
                     )}
                     {project.published && !project.archived && (
-                      <Badge className="shrink-0 bg-green-500">Published</Badge>
+                      <Badge className="shrink-0 bg-emerald-500/30 text-emerald-300">Published</Badge>
                     )}
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
+                  <p className="line-clamp-2 text-sm text-white/60">
                     {project.description}
                   </p>
                 </div>
-                <div className="flex gap-2 shrink-0">
+                <div className="flex shrink-0 gap-2">
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => handleEdit(project)}
-                    className="hover:bg-primary/10 hover:border-primary/50"
+                    className="bg-transparent border-white/20 text-white hover:bg-white/10"
                   >
-                    <Edit className="w-4 h-4" />
+                    <Edit className="h-4 w-4" />
                   </Button>
                   {!project.archived && (
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => handleArchive(project.id)}
-                      className="hover:bg-destructive/10 hover:border-destructive/50"
+                      className="bg-transparent border-white/20 text-white hover:bg-red-500/20"
                     >
-                      <Archive className="w-4 h-4" />
+                      <Archive className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -495,32 +503,32 @@ export const ProjectManagement = () => {
             </CardHeader>
             <CardContent className="relative">
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="p-3 rounded-lg bg-muted/50">
-                  <div className="text-xs text-muted-foreground mb-1">Category</div>
-                  <div className="font-semibold">{project.category || 'N/A'}</div>
+                <div className="rounded-lg bg-black/60 p-3">
+                  <div className="mb-1 text-xs text-white/55">Category</div>
+                  <div className="font-semibold text-white">{project.category || 'N/A'}</div>
                 </div>
-                <div className="p-3 rounded-lg bg-muted/50">
-                  <div className="text-xs text-muted-foreground mb-1">Difficulty</div>
-                  <div className="font-semibold capitalize">{project.difficulty_level || 'N/A'}</div>
+                <div className="rounded-lg bg-black/60 p-3">
+                  <div className="mb-1 text-xs text-white/55">Difficulty</div>
+                  <div className="font-semibold capitalize text-white">{project.difficulty_level || 'N/A'}</div>
                 </div>
-                <div className="p-3 rounded-lg bg-muted/50">
-                  <div className="text-xs text-muted-foreground mb-1">Capacity</div>
-                  <div className="font-semibold">{project.capacity}</div>
+                <div className="rounded-lg bg-black/60 p-3">
+                  <div className="mb-1 text-xs text-white/55">Capacity</div>
+                  <div className="font-semibold text-white">{project.capacity}</div>
                 </div>
-                <div className="p-3 rounded-lg bg-muted/50">
-                  <div className="text-xs text-muted-foreground mb-1">Team Size</div>
-                  <div className="font-semibold">{project.team_size_min}-{project.team_size_max}</div>
+                <div className="rounded-lg bg-black/60 p-3">
+                  <div className="mb-1 text-xs text-white/55">Team Size</div>
+                  <div className="font-semibold text-white">{project.team_size_min}-{project.team_size_max}</div>
                 </div>
               </div>
               {(project.required_skills && project.required_skills.length > 0) && (
                 <div className="mt-3 flex flex-wrap gap-1">
                   {project.required_skills.slice(0, 3).map((skill: string, idx: number) => (
-                    <Badge key={idx} variant="outline" className="text-xs">
+                    <Badge key={idx} variant="outline" className="text-xs border-white/20 bg-white/10 text-white/80">
                       {skill}
                     </Badge>
                   ))}
                   {project.required_skills.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs border-white/20 bg-white/10 text-white/80">
                       +{project.required_skills.length - 3} more
                     </Badge>
                   )}

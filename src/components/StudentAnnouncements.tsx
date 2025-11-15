@@ -80,24 +80,27 @@ export function StudentAnnouncements({ limit = 4 }: StudentAnnouncementsProps) {
       : "Admin";
 
     return (
-      <Card key={announcement.id} className="border border-white/10 bg-background/60 backdrop-blur">
+      <Card
+        key={announcement.id}
+        className="rounded-2xl border border-white/10 bg-black/60 text-white/75 backdrop-blur-xl"
+      >
         <CardHeader className="pb-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <CardTitle className="text-base font-semibold text-foreground">
+            <CardTitle className="text-base font-semibold text-white">
               {announcement.title}
             </CardTitle>
             {isRecent && (
-              <Badge variant="default" className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+              <Badge variant="default" className="border border-emerald-400/40 bg-emerald-500/20 text-emerald-300">
                 New
               </Badge>
             )}
           </div>
-          <CardDescription className="text-xs">
+          <CardDescription className="text-xs text-white/55">
             Posted by {authorName} on {createdAt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
-          <p className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/70">
             {announcement.content}
           </p>
         </CardContent>
@@ -106,20 +109,20 @@ export function StudentAnnouncements({ limit = 4 }: StudentAnnouncementsProps) {
   };
 
   return (
-    <Card className="border border-white/10 bg-background/70 backdrop-blur">
+    <Card className="rounded-3xl border border-white/10 bg-black/70 text-white/75 backdrop-blur-xl">
       <CardHeader className="pb-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-2">
-              <Megaphone className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-xl font-semibold text-white">
+              <Megaphone className="h-5 w-5 text-sky-400" />
               Latest Announcements
             </CardTitle>
-            <CardDescription className="text-sm text-muted-foreground">
+            <CardDescription className="text-sm text-white/55">
               Stay in sync with important updates from coordinators and mentors.
             </CardDescription>
           </div>
           {!loading && announcements.length > 0 && (
-            <Badge variant="outline" className="border-white/20 text-xs text-muted-foreground">
+            <Badge variant="outline" className="border-white/20 text-xs text-white/60">
               {announcements.length} update{announcements.length === 1 ? "" : "s"}
             </Badge>
           )}
@@ -127,14 +130,14 @@ export function StudentAnnouncements({ limit = 4 }: StudentAnnouncementsProps) {
       </CardHeader>
       <CardContent>
         {loading && (
-          <div className="flex items-center justify-center py-8 text-muted-foreground">
+          <div className="flex items-center justify-center py-8 text-white/55">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Loading announcements…
           </div>
         )}
 
         {!loading && announcements.length === 0 && (
-          <div className="rounded-lg border border-dashed border-white/10 py-10 text-center text-sm text-muted-foreground">
+          <div className="rounded-2xl border border-dashed border-white/15 bg-black/40 py-10 text-center text-sm text-white/55">
             No announcements yet. Check back soon for updates.
           </div>
         )}

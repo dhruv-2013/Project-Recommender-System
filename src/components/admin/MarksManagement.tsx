@@ -36,6 +36,7 @@ type TeamWithApplication = {
   description: string | null;
   project_id: string;
   project_title: string;
+  project_subject_code?: string | null;
   application_id: string;
   members?: Array<{
     user_id: string;
@@ -115,6 +116,18 @@ export const MarksManagement = () => {
         profilesData = data;
       }
 
+      // Fetch subject codes from application_responses
+      const applicationIds = appsData.map((app) => app.id);
+      const { data: responsesData } = await supabase
+        .from('application_responses' as any)
+        .select('application_id, subject_code')
+        .in('application_id', applicationIds);
+
+      const subjectCodeMap = new Map<string, string | null>();
+      (responsesData || []).forEach((resp: any) => {
+        subjectCodeMap.set(resp.application_id, resp.subject_code || null);
+      });
+
       const teamsWithApps: TeamWithApplication[] = appsData.map((app) => {
         const team = teamsData?.find((t) => t.id === app.applicant_id);
         const members = teamMembersData
@@ -134,6 +147,7 @@ export const MarksManagement = () => {
           description: team?.description || null,
           project_id: app.project_id,
           project_title: (app.projects as any)?.title || 'Unknown Project',
+          project_subject_code: subjectCodeMap.get(app.id) || null,
           application_id: app.id,
           members,
         };
@@ -216,6 +230,11 @@ export const MarksManagement = () => {
     if (rubricTotal != null) markData.rubric_total = rubricTotal;
     if (rubricWeights) markData.rubric_weights = rubricWeights;
 
+    // If mark was previously released, keep it released when saving again
+    if (existingMark?.released) {
+      markData.released = true;
+    }
+
     let error;
     if (existingMark) {
       ({ error } = await supabase.from('marks').update(markData).eq('id', existingMark.id));
@@ -245,40 +264,45 @@ export const MarksManagement = () => {
     const team = teams.find((t) => t.id === selectedTeam);
     if (!team) return;
 
+    const existingMark = marks.find((m) => m.team_id === selectedTeam && m.project_id === team.project_id);
+    const newReleasedStatus = !existingMark?.released;
+
     const { error } = await supabase
       .from('marks')
-      .update({ released: true })
+      .update({ released: newReleasedStatus })
       .eq('team_id', selectedTeam)
       .eq('project_id', team.project_id);
 
     if (error) {
       toast({
         title: 'Error',
-        description: 'Failed to release grades',
+        description: 'Failed to update grade release status',
         variant: 'destructive',
       });
     } else {
       toast({
         title: 'Success',
-        description: 'Grades released successfully',
+        description: newReleasedStatus ? 'Grades released successfully' : 'Grades unreleased',
       });
       fetchMarkForTeam();
       fetchApprovedTeams();
-      setSelectedTeam('');
-      setMarks([]);
     }
   };
 
   if (loading) {
-    return <div className="text-center py-8">Loading teams...</div>;
+    return (
+      <div className="flex items-center justify-center py-12 text-white/60">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-400 border-t-transparent" />
+      </div>
+    );
   }
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Marks Management</h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h2 className="text-2xl font-bold text-white">Marks Management</h2>
+          <p className="mt-1 text-sm text-white/60">
             {teams.length} approved team{teams.length !== 1 ? 's' : ''} to mark
           </p>
         </div>
@@ -292,7 +316,7 @@ export const MarksManagement = () => {
               setSelectedTeam('');
               setMarks([]);
             }}
-            className="mb-4"
+            className="mb-4 bg-transparent border-white/20 text-white hover:bg-white/10"
           >
             ← Back to Team List
           </Button>
@@ -301,7 +325,7 @@ export const MarksManagement = () => {
             const existingMark = marks.find((m) => m.team_id === selectedTeam);
             if (!team) return null;
 
-            const application: ApplicationWithTeam = {
+            const application: ApplicationWithTeam & { project_subject_code?: string | null } = {
               id: team.application_id,
               applicant_id: team.id,
               applicant_type: 'team',
@@ -310,6 +334,7 @@ export const MarksManagement = () => {
               admin_note: null,
               created_at: null,
               updated_at: null,
+              project_subject_code: team.project_subject_code,
               team: {
                 id: team.id,
                 name: team.name,
@@ -327,19 +352,18 @@ export const MarksManagement = () => {
                   onSave={handleMarkUpdate}
                 />
                 {existingMark && (
-                  <Card>
+                  <Card className="rounded-3xl border border-white/10 bg-black/70 text-white/80">
                     <CardContent className="pt-6">
                       <Button
                         onClick={handleReleaseGrades}
-                        className="w-full"
+                        className={`w-full ${existingMark.released ? "bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30" : "bg-sky-500 text-white hover:bg-sky-400"}`}
                         variant={existingMark.released ? 'outline' : 'default'}
-                        disabled={existingMark.released}
                       >
-                        {existingMark.released ? 'Grades Already Released' : 'Release Grades to Students'}
+                        {existingMark.released ? 'Re-release Grades to Students' : 'Release Grades to Students'}
                       </Button>
                       {existingMark.released && (
-                        <p className="text-sm text-green-600 text-center mt-2">
-                          ✓ Grades have been released to students
+                        <p className="mt-2 text-center text-sm text-emerald-400">
+                          ✓ Grades have been released to students. Click above to re-release after making changes.
                         </p>
                       )}
                     </CardContent>
@@ -352,14 +376,14 @@ export const MarksManagement = () => {
       ) : (
         <div className="space-y-4">
           {teams.length === 0 ? (
-            <div className="text-center py-12 border rounded-lg">
-              <p className="text-muted-foreground text-lg">No approved team applications found.</p>
-              <p className="text-sm text-muted-foreground mt-2">
+            <div className="rounded-lg border border-white/10 bg-black/70 py-12 text-center">
+              <p className="text-lg text-white/60">No approved team applications found.</p>
+              <p className="mt-2 text-sm text-white/60">
                 Teams will appear here once they have approved applications.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {teams.map((team) => {
                 const teamMark = marks.find((m) => m.team_id === team.id && m.project_id === team.project_id);
                 const isMarked = !!teamMark;
@@ -368,50 +392,60 @@ export const MarksManagement = () => {
                 return (
                   <Card
                     key={team.id}
-                    className={`cursor-pointer hover:shadow-lg transition-shadow ${
-                      selectedTeam === team.id ? 'ring-2 ring-primary' : ''
-                    } ${isReleased ? 'border-green-200 bg-green-50/50' : ''}`}
+                    className={`cursor-pointer rounded-3xl border border-white/10 bg-black/70 text-white/80 shadow-[0_25px_65px_-40px_rgba(56,189,248,0.45)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/50 ${
+                      selectedTeam === team.id ? 'ring-2 ring-sky-400' : ''
+                    } ${isReleased ? 'border-emerald-400/50 bg-emerald-500/10' : ''}`}
                     onClick={() => {
                       setSelectedTeam(team.id);
                     }}
                   >
                     <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg">{team.name}</CardTitle>
-                        {isReleased && <Badge className="bg-green-100 text-green-800">Released</Badge>}
-                        {isMarked && !isReleased && <Badge variant="secondary">Marked</Badge>}
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-lg text-white">{team.name}</CardTitle>
+                        {isReleased && <Badge className="bg-emerald-500/30 text-emerald-300">Released</Badge>}
+                        {isMarked && !isReleased && <Badge variant="secondary" className="bg-white/15 text-white/80">Marked</Badge>}
                       </div>
-                      <p className="text-sm font-medium text-primary mt-1">{team.project_title}</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <p className="text-sm font-medium text-sky-400">{team.project_title}</p>
+                        {team.project_subject_code && (
+                          <>
+                            <span className="text-white/40">•</span>
+                            <Badge variant="outline" className="border-white/20 bg-white/10 text-white/80 text-xs">
+                              {team.project_subject_code}
+                            </Badge>
+                          </>
+                        )}
+                      </div>
                       {team.description && (
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{team.description}</p>
+                        <p className="mt-2 line-clamp-2 text-sm text-white/60">{team.description}</p>
                       )}
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground">Team Members</p>
-                          <div className="flex flex-wrap gap-1 mt-1">
+                          <p className="text-xs font-medium text-white/55">Team Members</p>
+                          <div className="mt-1 flex flex-wrap gap-1">
                             {team.members && team.members.length > 0 ? (
                               team.members.slice(0, 3).map((member) => (
-                                <span key={member.user_id} className="text-xs bg-muted px-2 py-0.5 rounded">
+                                <span key={member.user_id} className="rounded bg-black/60 px-2 py-0.5 text-xs text-white/80">
                                   {member.full_name || `User ${member.user_id.slice(0, 6)}`}
                                 </span>
                               ))
                             ) : (
-                              <span className="text-xs text-muted-foreground">No members</span>
+                              <span className="text-xs text-white/60">No members</span>
                             )}
                             {team.members && team.members.length > 3 && (
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-white/60">
                                 +{team.members.length - 3} more
                               </span>
                             )}
                           </div>
                         </div>
                         {isMarked && (
-                          <div className="pt-2 border-t">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-muted-foreground">Final Mark</span>
-                              <span className="text-lg font-bold">
+                          <div className="border-t border-white/10 pt-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-white/55">Final Mark</span>
+                              <span className="text-lg font-bold text-white">
                                 {teamMark.final_mark?.toFixed(1) || teamMark.team_mark?.toFixed(1) || 'N/A'}
                               </span>
                             </div>
@@ -419,7 +453,7 @@ export const MarksManagement = () => {
                         )}
                         <div className="pt-2">
                           <Button
-                            className="w-full"
+                            className={`w-full ${isMarked ? 'bg-transparent border-white/20 text-white hover:bg-white/10' : 'bg-sky-500 text-white hover:bg-sky-400'}`}
                             variant={isMarked ? 'outline' : 'default'}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -597,22 +631,29 @@ const MarkingCard = ({ application, existingMark, onSave }: any) => {
   };
 
   return (
-    <Card>
+    <Card className="rounded-3xl border border-white/10 bg-black/70 text-white/80">
       <CardHeader>
-        <CardTitle className="text-lg">
+        <CardTitle className="text-lg text-white">
           {application.team?.name || `Team ${application.applicant_id.slice(0, 8)}`}
         </CardTitle>
+        {(application as any).project_subject_code && (
+          <div className="mb-2">
+            <Badge variant="outline" className="border-white/20 bg-white/10 text-white/80 text-xs">
+              Subject: {(application as any).project_subject_code}
+            </Badge>
+          </div>
+        )}
         {application.team?.description && (
-          <p className="text-sm text-muted-foreground mb-2">{application.team.description}</p>
+          <p className="mb-2 text-sm text-white/60">{application.team.description}</p>
         )}
         {application.team?.members && application.team.members.length > 0 && (
           <div className="mt-2">
-            <p className="text-xs font-medium text-muted-foreground mb-1">Team Members:</p>
+            <p className="mb-1 text-xs font-medium text-white/55">Team Members:</p>
             <div className="flex flex-wrap gap-2">
               {application.team.members.map((member) => (
-                <span key={member.user_id} className="text-xs bg-muted px-2 py-1 rounded">
+                <span key={member.user_id} className="rounded bg-black/60 px-2 py-1 text-xs text-white/80">
                   {member.full_name || `User ${member.user_id.slice(0, 8)}`}
-                  {member.email && <span className="text-muted-foreground"> ({member.email})</span>}
+                  {member.email && <span className="text-white/60"> ({member.email})</span>}
                 </span>
               ))}
             </div>
@@ -620,25 +661,25 @@ const MarkingCard = ({ application, existingMark, onSave }: any) => {
         )}
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-muted p-4 rounded-lg">
-            <p className="text-xs font-medium text-muted-foreground">Rubric Overview</p>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="rounded-lg bg-black/60 p-4">
+            <p className="text-xs font-medium text-white/55">Rubric Overview</p>
             <ul className="mt-3 space-y-2 text-sm">
               {(Object.entries(GRADE_SCALE) as Array<[GradeKey, typeof GRADE_SCALE[GradeKey]]>).map(([grade, meta]) => (
                 <li key={grade}>
-                  <span className="font-semibold mr-2">{grade}</span>
-                  <span className="text-muted-foreground">{meta.description}</span>
+                  <span className="mr-2 font-semibold text-white">{grade}</span>
+                  <span className="text-white/60">{meta.description}</span>
                 </li>
               ))}
             </ul>
           </div>
-          <div className="bg-muted p-4 rounded-lg">
-            <p className="text-xs font-medium text-muted-foreground">Team Mark (weighted)</p>
-            <p className="mt-2 text-2xl font-bold">{teamMark.toFixed(1)}</p>
+          <div className="rounded-lg bg-black/60 p-4">
+            <p className="text-xs font-medium text-white/55">Team Mark (weighted)</p>
+            <p className="mt-2 text-2xl font-bold text-white">{teamMark.toFixed(1)}</p>
           </div>
-          <div className="bg-muted p-4 rounded-lg space-y-2">
+          <div className="space-y-2 rounded-lg bg-black/60 p-4">
             <div>
-              <Label htmlFor="team-adjustment" className="text-xs text-muted-foreground">Adjustment (±)</Label>
+              <Label htmlFor="team-adjustment" className="text-xs text-white/55">Adjustment (±)</Label>
               <Input
                 id="team-adjustment"
                 type="number"
@@ -648,23 +689,24 @@ const MarkingCard = ({ application, existingMark, onSave }: any) => {
                 value={individualAdjustment}
                 onChange={(e) => setIndividualAdjustment(parseFloat(e.target.value) || 0)}
                 placeholder="0.0"
+                className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
               />
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Final Mark</p>
-              <p className="text-2xl font-bold">{finalMark.toFixed(1)}</p>
+              <p className="text-xs font-medium text-white/55">Final Mark</p>
+              <p className="text-2xl font-bold text-white">{finalMark.toFixed(1)}</p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {SECTION_CONFIG.map((section) => {
             const grade = sectionGrades[section.key] ?? 'CR';
             return (
-              <div key={section.key} className="border rounded-lg p-4 space-y-3">
+              <div key={section.key} className="rounded-lg border border-white/10 bg-black/60 p-4 space-y-3">
                 <div>
-                  <p className="text-sm font-semibold">{section.key}</p>
-                  <p className="text-xs text-muted-foreground">Weight {section.weight}% • {section.description}</p>
+                  <p className="text-sm font-semibold text-white">{section.key}</p>
+                  <p className="text-xs text-white/60">Weight {section.weight}% • {section.description}</p>
                 </div>
                 <Select
                   value={grade}
@@ -672,10 +714,10 @@ const MarkingCard = ({ application, existingMark, onSave }: any) => {
                     setSectionGrades({ ...sectionGrades, [section.key]: value });
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="rounded-xl border-white/15 bg-black/40 text-white focus-visible:ring-0">
                     <SelectValue placeholder="Select grade" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="border border-white/10 bg-[#0b111a] text-white">
                     {(Object.entries(GRADE_SCALE) as Array<[GradeKey, typeof GRADE_SCALE[GradeKey]]>).map(([key, option]) => (
                       <SelectItem key={key} value={key}>
                         {option.label}
@@ -684,9 +726,9 @@ const MarkingCard = ({ application, existingMark, onSave }: any) => {
                   </SelectContent>
                 </Select>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Comments</Label>
+                  <Label className="text-xs text-white/55">Comments</Label>
                   <Textarea
-                    className="mt-1"
+                    className="mt-1 rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                     rows={4}
                     value={sectionComments[section.key] ?? ''}
                     onChange={(e) => setSectionComments({ ...sectionComments, [section.key]: e.target.value })}
@@ -699,20 +741,21 @@ const MarkingCard = ({ application, existingMark, onSave }: any) => {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-muted-foreground">Overall comments</Label>
+          <Label className="text-sm font-medium text-white/55">Overall comments</Label>
           <Textarea
             rows={4}
             value={overallFeedback}
             onChange={(e) => setOverallFeedback(e.target.value)}
             placeholder="Summary feedback that students will see…"
+            className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
           />
         </div>
 
-        <div className="flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">
-            {existingMark?.released ? <span className="text-green-600">Grade Released</span> : <span>Grade Not Released</span>}
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-white/60">
+            {existingMark?.released ? <span className="text-emerald-400">Grade Released</span> : <span>Grade Not Released</span>}
           </div>
-          <Button onClick={handleSave}>Save Mark</Button>
+          <Button onClick={handleSave} className="bg-sky-500 text-white hover:bg-sky-400">Save Mark</Button>
         </div>
       </CardContent>
     </Card>

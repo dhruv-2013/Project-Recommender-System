@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import StudentProfileForm from "@/components/StudentProfileForm";
-import { StudentMarks } from "@/components/StudentMarks";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Profile = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -47,23 +45,16 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-[#040509] via-[#070b11] to-[#05070c] text-white">
       <Header user={user ?? undefined} profile={profile ?? undefined} onSignOut={handleSignOut} />
-      <main className="pt-16 container mx-auto px-4 py-8">
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="marks">Marks</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="profile">
-            <StudentProfileForm onProfileCreated={() => navigate(-1)} />
-          </TabsContent>
-
-          <TabsContent value="marks">
-            <StudentMarks />
-          </TabsContent>
-        </Tabs>
+      <main className="pt-24 container mx-auto px-4 py-10">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white">Profile</h1>
+          <p className="text-sm text-white/60 mt-1">Manage your profile information</p>
+        </div>
+        <div className="rounded-3xl border border-white/10 bg-black/70 p-6 backdrop-blur-md">
+          <StudentProfileForm onProfileCreated={() => navigate(-1)} />
+        </div>
       </main>
     </div>
   );

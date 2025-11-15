@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Brain, Menu, X, LogOut } from "lucide-react";
+import { Brain, Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -44,7 +44,21 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
             )}
             {user && (
               <>
-                <Button onClick={onSignOut} variant="outline" size="sm">
+                <Button 
+                  onClick={() => navigate('/profile')} 
+                  variant="ghost" 
+                  size="sm"
+                  className="bg-transparent text-white hover:bg-white/10"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </Button>
+                <Button 
+                  onClick={onSignOut} 
+                  variant="ghost" 
+                  size="sm"
+                  className="bg-transparent text-white hover:bg-white/10"
+                >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </Button>

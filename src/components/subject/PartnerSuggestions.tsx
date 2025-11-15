@@ -176,9 +176,9 @@ export function PartnerSuggestions({
 
   if (loading) {
     return (
-      <Card>
+      <Card className="rounded-3xl border border-white/10 bg-black/60 text-white/70 shadow-[0_18px_45px_-30px_rgba(56,189,248,0.45)]">
         <CardContent className="flex items-center justify-center p-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-sky-400" />
         </CardContent>
       </Card>
     );
@@ -186,27 +186,29 @@ export function PartnerSuggestions({
 
   return (
     <div className="space-y-4">
-      <Card>
+      <Card className="rounded-3xl border border-white/10 bg-black/60 text-white/70 shadow-[0_18px_45px_-30px_rgba(56,189,248,0.45)]">
         <CardHeader>
-          <CardTitle>Partner Suggestions</CardTitle>
-          <CardDescription>Students enrolled in {subjectCode}, sorted by skill match</CardDescription>
+          <CardTitle className="text-white">Partner Suggestions</CardTitle>
+          <CardDescription className="text-white/60">
+            Students enrolled in {subjectCode}, sorted by skill match
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Input
             placeholder="Search by name, email, or skills..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full"
+            className="w-full rounded-xl border-white/10 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
           />
         </CardContent>
       </Card>
 
       {filtered.length === 0 ? (
-        <Card>
+        <Card className="rounded-3xl border border-white/10 bg-black/60 text-white/70">
           <CardContent className="flex flex-col items-center justify-center p-12 text-center">
-            <Users className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No students found</h3>
-            <p className="text-muted-foreground">
+            <Users className="mb-4 h-12 w-12 text-white/40" />
+            <h3 className="mb-2 text-lg font-semibold text-white">No students found</h3>
+            <p className="text-white/50">
               {suggestions.length === 0
                 ? `No other students are enrolled in ${subjectCode} yet.`
                 : "Try adjusting your search terms"}
@@ -219,21 +221,32 @@ export function PartnerSuggestions({
           const isAdding = addingUserId === student.id;
 
           return (
-            <Card key={student.id} className="hover-lift">
+            <Card
+              key={student.id}
+              className="rounded-3xl border border-white/10 bg-black/70 text-white/80 transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/60 hover:shadow-[0_25px_60px_-35px_rgba(56,189,248,0.65)]"
+            >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold mb-1">{student.name}</h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                    <h3 className="mb-1 text-xl font-semibold text-white">{student.name}</h3>
+                    <div className="mb-2 flex items-center gap-2 text-sm text-white/50">
                       <Mail className="h-4 w-4" />
                       {student.email}
                     </div>
-                    <div className="flex gap-2 text-sm flex-wrap">
-                      {student.level && <Badge variant="outline">{student.level}</Badge>}
-                      {student.field && <Badge variant="outline">{student.field}</Badge>}
+                    <div className="flex flex-wrap gap-2 text-sm">
+                      {student.level && (
+                        <Badge variant="outline" className="border-white/15 bg-white/10 text-white/70">
+                          {student.level}
+                        </Badge>
+                      )}
+                      {student.field && (
+                        <Badge variant="outline" className="border-white/15 bg-white/10 text-white/70">
+                          {student.field}
+                        </Badge>
+                      )}
                       {student.wam && (
-                        <Badge variant="secondary">
-                          <Star className="h-3 w-3 mr-1" />
+                        <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-300">
+                          <Star className="mr-1 h-3 w-3" />
                           WAM: {typeof student.wam === "number" ? student.wam.toFixed(1) : student.wam}
                         </Badge>
                       )}
@@ -243,16 +256,24 @@ export function PartnerSuggestions({
                     <div className={`text-3xl font-bold ${getMatchColor(student.matchPercentage)}`}>
                       {student.matchPercentage}%
                     </div>
-                    <div className="text-xs text-muted-foreground">Match Score</div>
+                    <div className="text-xs text-white/50">Match Score</div>
                   </div>
                 </div>
 
                 {Array.isArray(student.skills) && student.skills.length > 0 && (
                   <div className="mb-4">
-                    <div className="text-sm font-medium mb-2">Skills:</div>
+                    <div className="mb-2 text-sm font-medium text-white">Skills:</div>
                     <div className="flex flex-wrap gap-2">
                       {student.skills.map((skill: string) => (
-                        <Badge key={skill} variant={mySkills.includes(skill) ? "default" : "secondary"}>
+                        <Badge
+                          key={skill}
+                          variant={mySkills.includes(skill) ? "default" : "secondary"}
+                          className={
+                            mySkills.includes(skill)
+                              ? "bg-sky-400/30 text-sky-200"
+                              : "bg-white/10 text-white/70"
+                          }
+                        >
                           {skill}
                         </Badge>
                       ))}
@@ -264,13 +285,17 @@ export function PartnerSuggestions({
                   {onAddPartner && onRemovePartner && (
                     <>
                       {selectedPartners.some((p) => p.user_id === student.id) ? (
-                        <Button variant="outline" className="flex-1" onClick={() => onRemovePartner(student.id)}>
-                          <Check className="w-4 h-4 mr-2" /> Remove from New Team
+                        <Button
+                          variant="outline"
+                          className="flex-1 border-white/20 text-white hover:bg-white/10"
+                          onClick={() => onRemovePartner(student.id)}
+                        >
+                          <Check className="mr-2 h-4 w-4" /> Remove from New Team
                         </Button>
                       ) : (
                         <Button
                           variant="default"
-                          className="flex-1"
+                          className="flex-1 bg-sky-500 text-white hover:bg-sky-400"
                           onClick={() =>
                             onAddPartner({
                               user_id: student.id,
@@ -279,7 +304,7 @@ export function PartnerSuggestions({
                             })
                           }
                         >
-                          <Plus className="w-4 h-4 mr-2" /> Add to New Team
+                          <Plus className="mr-2 h-4 w-4" /> Add to New Team
                         </Button>
                       )}
                     </>
@@ -310,14 +335,18 @@ export function PartnerSuggestions({
                           )}
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="border border-white/10 bg-[#0b111a] text-white">
                         <DialogHeader>
-                          <DialogTitle>Add to Existing Team</DialogTitle>
-                          <DialogDescription>Select a team to add {student.name} directly</DialogDescription>
+                          <DialogTitle className="text-white">Add to Existing Team</DialogTitle>
+                          <DialogDescription className="text-white/60">
+                            Select a team to add {student.name} directly
+                          </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div>
-                            <Label htmlFor="team-select">Select Team</Label>
+                            <Label htmlFor="team-select" className="text-white/70">
+                              Select Team
+                            </Label>
                             <Select value={selectedTeam} onValueChange={setSelectedTeam}>
                               <SelectTrigger id="team-select">
                                 <SelectValue placeholder="Choose a team" />
@@ -331,15 +360,19 @@ export function PartnerSuggestions({
                               </SelectContent>
                             </Select>
                           </div>
-                          <Button onClick={() => handleAddToTeam(student)} disabled={!selectedTeam || isAdding} className="w-full">
+                          <Button
+                            onClick={() => handleAddToTeam(student)}
+                            disabled={!selectedTeam || isAdding}
+                            className="w-full bg-sky-500 text-white hover:bg-sky-400"
+                          >
                             {isAdding ? "Adding..." : "Add to Team"}
                           </Button>
                         </div>
                       </DialogContent>
                     </Dialog>
                   ) : (
-                    <div className="flex-1 text-center p-3 bg-muted rounded-lg">
-                      <p className="text-sm text-muted-foreground">Use the "Make Group" tab to create a team</p>
+                    <div className="flex-1 rounded-lg border border-white/10 bg-black/40 p-3 text-center">
+                      <p className="text-sm text-white/60">Use the "Make Group" tab to create a team</p>
                     </div>
                   )}
                 </div>

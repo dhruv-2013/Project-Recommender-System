@@ -129,52 +129,58 @@ export const AnnouncementManagement = () => {
   };
 
   if (loading) {
-    return <div>Loading announcements...</div>;
+    return (
+      <div className="flex items-center justify-center py-12 text-white/60">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-400 border-t-transparent" />
+      </div>
+    );
   }
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Announcement Management</h2>
+      <div className="mb-8 flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white">Announcement Management</h2>
         <Dialog open={isDialogOpen} onOpenChange={(o) => { if (!o) { setEditing(null); setFormData({ title: '', content: '' }); } setIsDialogOpen(o); }}>
           <DialogTrigger asChild>
-            <Button onClick={openCreate}>
-              <Plus className="w-4 h-4 mr-2" />
+            <Button onClick={openCreate} className="bg-sky-500 text-white hover:bg-sky-400">
+              <Plus className="mr-2 h-4 w-4" />
               Create Announcement
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="border border-white/10 bg-[#0b111a] text-white">
             <DialogHeader>
-              <DialogTitle>{editing ? 'Edit Announcement' : 'Create New Announcement'}</DialogTitle>
+              <DialogTitle className="text-white">{editing ? 'Edit Announcement' : 'Create New Announcement'}</DialogTitle>
             </DialogHeader>
             
             <div className="space-y-4">
               <div>
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title" className="text-white/70">Title</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   placeholder="Announcement title"
+                  className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                 />
               </div>
 
               <div>
-                <Label htmlFor="content">Content</Label>
+                <Label htmlFor="content" className="text-white/70">Content</Label>
                 <Textarea
                   id="content"
                   value={formData.content}
                   onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
                   placeholder="Announcement content"
                   rows={5}
+                  className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                 />
               </div>
 
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-white/20 text-white hover:bg-white/10">
                   Cancel
                 </Button>
-                <Button onClick={handleSubmit}>
+                <Button onClick={handleSubmit} className="bg-sky-500 text-white hover:bg-sky-400">
                   {editing ? 'Update' : 'Create'} Announcement
                 </Button>
               </div>
@@ -185,18 +191,18 @@ export const AnnouncementManagement = () => {
 
       <div className="space-y-4">
         {announcements.map((announcement) => (
-          <Card key={announcement.id}>
+          <Card key={announcement.id} className="rounded-3xl border border-white/10 bg-black/70 text-white/80 shadow-[0_25px_65px_-40px_rgba(56,189,248,0.45)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/50">
             <CardHeader>
-              <CardTitle>{announcement.title}</CardTitle>
-              <p className="text-sm text-muted-foreground">
+              <CardTitle className="text-white">{announcement.title}</CardTitle>
+              <p className="text-sm text-white/60">
                 By {authorMap[announcement.created_by]?.full_name || 'Admin'} on {new Date(announcement.created_at).toLocaleDateString()}
               </p>
             </CardHeader>
             <CardContent>
-              <div className="whitespace-pre-wrap mb-3">{announcement.content}</div>
+              <div className="mb-3 whitespace-pre-wrap text-white/75">{announcement.content}</div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => openEdit(announcement)}>Edit</Button>
-                <Button variant="destructive" size="sm" onClick={() => handleDelete(announcement.id)}>Delete</Button>
+                <Button variant="outline" size="sm" onClick={() => openEdit(announcement)} className="bg-transparent border-white/20 text-white hover:bg-white/10">Edit</Button>
+                <Button variant="destructive" size="sm" onClick={() => handleDelete(announcement.id)} className="bg-red-500/30 text-red-200 hover:bg-red-500/40">Delete</Button>
               </div>
             </CardContent>
           </Card>
@@ -204,8 +210,8 @@ export const AnnouncementManagement = () => {
       </div>
 
       {announcements.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">No announcements found.</p>
+        <div className="py-8 text-center">
+          <p className="text-white/60">No announcements found.</p>
         </div>
       )}
     </div>

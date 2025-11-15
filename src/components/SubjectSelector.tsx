@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { BookOpen, ArrowRight } from "lucide-react";
@@ -60,80 +58,80 @@ export function SubjectSelector({ userId, onSignOut, user, profile }: SubjectSel
   const t3Subjects = subjects.filter((s) => s.term === "2025-T3");
 
   const termSections = [
-    { label: "Term 1", code: "2025-T1", description: "Kickstart the academic year with foundational builds.", subjects: t1Subjects },
-    { label: "Term 2", code: "2025-T2", description: "Double down on real-world collaboration.", subjects: t2Subjects },
-    { label: "Term 3", code: "2025-T3", description: "Deliver capstone-ready innovation.", subjects: t3Subjects },
+    { label: "Term 1", code: "2025-T1", subjects: t1Subjects },
+    { label: "Term 2", code: "2025-T2", subjects: t2Subjects },
+    { label: "Term 3", code: "2025-T3", subjects: t3Subjects },
   ].filter((section) => section.subjects.length > 0);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-[#050709] via-[#080c14] to-[#0b1220] text-white">
       <Header user={user} profile={profile} onSignOut={onSignOut} />
 
-      <main className="container mx-auto px-4 py-10">
-        <section className="rounded-xl border bg-card/70 p-6 shadow-sm">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-2">
-              <Badge variant="outline" className="w-fit border-primary/30 text-primary">
-                Subjects
-              </Badge>
-              <h1 className="text-3xl font-semibold text-foreground">Select your subject</h1>
-              <p className="text-sm text-muted-foreground max-w-xl">
-                Choose a subject to explore available projects, form teams, and stay up to date with announcements.
-              </p>
-            </div>
+      <main className="mx-auto max-w-6xl px-4 pt-24 pb-20">
+        <section className="space-y-6 text-center">
+          <Badge variant="outline" className="mx-auto w-fit border-white/20 bg-white/10 text-white/80">
+            Choose Your Stream
+          </Badge>
+          <div className="space-y-4">
+            <h1 className="text-4xl font-bold md:text-5xl">Select Your Subject</h1>
+            <p className="mx-auto max-w-3xl text-base text-white/60 md:text-lg">
+              Pick the subject that aligns with your pathway. Each one unlocks a curated set of
+              projects, announcements, and teaming tools tailored to that cohort.
+            </p>
           </div>
         </section>
 
-        <section className="mt-12 space-y-10">
+        <section className="mt-16">
           {termSections.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                No subjects are published yet. Check back soon for new offerings.
-              </CardContent>
-            </Card>
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-12 text-center backdrop-blur-md">
+              <h2 className="text-2xl font-semibold text-white">No subjects published yet</h2>
+              <p className="mt-3 text-sm text-white/60">
+                Check back soon—new opportunities are released regularly.
+              </p>
+            </div>
           ) : (
-            termSections.map((section) => (
-              <div key={section.code} className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl font-semibold text-foreground">{section.label}</h2>
-                    {section.description && (
-                      <p className="text-sm text-muted-foreground">{section.description}</p>
-                    )}
+            <div className="space-y-14">
+              {termSections.map((section) => (
+                <div key={section.code} className="space-y-6">
+                  <div className="flex flex-col gap-3 text-center md:flex-row md:items-center md:justify-between md:text-left">
+                    <div>
+                      <h2 className="text-3xl font-semibold">{section.label}</h2>
+                    </div>
+                    <Badge variant="outline" className="mx-auto w-fit border-white/15 bg-white/10 text-white/70 md:mx-0">
+                      {section.code}
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className="border-muted-foreground/20 text-muted-foreground">
-                    {section.code}
-                  </Badge>
-                </div>
 
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {section.subjects.map((subject) => (
-                    <Card
-                      key={subject.code}
-                      className="cursor-pointer transition hover:shadow-md"
-                      onClick={() => handleSubjectSelect(subject.code)}
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-primary" />
-                          <CardTitle className="text-base font-semibold">{subject.code}</CardTitle>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {section.subjects.map((subject) => (
+                      <button
+                        key={subject.code}
+                        onClick={() => handleSubjectSelect(subject.code)}
+                        className="group relative w-full rounded-2xl border border-white/10 bg-white/[0.06] p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_25px_50px_-12px_rgba(56,189,248,0.35)]"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
+                              <BookOpen className="h-6 w-6" />
+                            </div>
+                            <div>
+                              <p className="text-sm uppercase tracking-wide text-white/50">{subject.code}</p>
+                              <h3 className="text-lg font-semibold text-white">{subject.name}</h3>
+                            </div>
+                          </div>
+                          <ArrowRight className="mt-2 h-5 w-5 text-white/50 transition-transform group-hover:translate-x-1 group-hover:text-primary" />
                         </div>
-                        <CardDescription className="text-sm text-muted-foreground">
-                          {subject.name}
-                        </CardDescription>
-                      </CardHeader>
-                      {subject.description && (
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
+                        {subject.description && (
+                          <p className="mt-4 text-sm leading-relaxed text-white/70">
                             {subject.description}
                           </p>
-                        </CardContent>
-                      )}
-                    </Card>
-                  ))}
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </section>
       </main>

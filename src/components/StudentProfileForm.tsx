@@ -271,23 +271,16 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
   };
 
   return (
-    <section className="py-20 bg-gradient-subtle">
-      <div className="container mx-auto px-6">
+    <section className="py-0">
+      <div className="container mx-auto px-0">
         <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-12 animate-fade-up">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{isEditing ? 'Edit Your Profile' : 'Create Your Profile'}</h2>
-            <p className="text-lg text-muted-foreground">
-              {isEditing ? 'Update your details and preferences.' : 'Tell us about your skills and experience to get personalized project recommendations'}
-            </p>
-          </div>
-
-          <Card className="shadow-elegant hover:shadow-glow transition-smooth">
+          <Card className="border border-white/10 bg-black/70 text-white/80">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5 text-primary" />
+              <CardTitle className="flex items-center gap-2 text-white">
+                <User className="w-5 h-5 text-sky-400" />
                 Student Information
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-white/60">
                 Provide your basic information and academic background
               </CardDescription>
             </CardHeader>
@@ -296,15 +289,16 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
               {/* Resume upload and extraction */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-2">Upload Resume (PDF/DOCX)</label>
+                  <label className="block text-sm font-medium mb-2 text-white/70">Upload Resume (PDF/DOCX)</label>
                   <Input
                     type="file"
                     accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                    className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                   />
                 </div>
                 <div className="flex items-end">
-                  <Button type="button" className="w-full" disabled={!resumeFile || resumeUploading || resumeExtracting} onClick={handleResumeUploadAndExtract}>
+                  <Button type="button" className="w-full bg-sky-500 text-white hover:bg-sky-400" disabled={!resumeFile || resumeUploading || resumeExtracting} onClick={handleResumeUploadAndExtract}>
                     {(resumeUploading || resumeExtracting) ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -323,54 +317,57 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                 {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">First Name</label>
+                    <label className="block text-sm font-medium mb-2 text-white/70">First Name</label>
                     <Input
                       value={formData.firstName}
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                       placeholder="e.g., Dhruv"
                       required
+                      className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Last Name</label>
+                    <label className="block text-sm font-medium mb-2 text-white/70">Last Name</label>
                     <Input
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                       placeholder="e.g., Gulwani"
                       required
+                      className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Email</label>
-                    <Input value={formData.email} disabled />
+                    <label className="block text-sm font-medium mb-2 text-white/70">Email</label>
+                    <Input value={formData.email} disabled className="rounded-xl border-white/15 bg-black/40 text-white/60" />
                   </div>
                 </div>
 
                 {/* Academic Details */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Academic Level</label>
+                    <label className="block text-sm font-medium mb-2 text-white/70">Academic Level</label>
                     <Select value={formData.academicLevel} onValueChange={(value) => setFormData({ ...formData, academicLevel: value })}>
-                      <SelectTrigger>
+                      <SelectTrigger className="rounded-xl border-white/15 bg-black/40 text-white focus-visible:ring-0">
                         <SelectValue placeholder="Select your level" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="border border-white/10 bg-[#0b111a] text-white">
                         <SelectItem value="undergraduate">Undergraduate</SelectItem>
                         <SelectItem value="masters">Master's</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Field of Study</label>
+                    <label className="block text-sm font-medium mb-2 text-white/70">Field of Study</label>
                     <Input
                       value={formData.fieldOfStudy}
                       onChange={(e) => setFormData({ ...formData, fieldOfStudy: e.target.value })}
                       placeholder="e.g., Computer Science"
                       required
+                      className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">WAM (Percentage)</label>
+                    <label className="block text-sm font-medium mb-2 text-white/70">WAM (Percentage)</label>
                     <Input
                       type="number"
                       min="0"
@@ -379,6 +376,7 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                       value={formData.wam}
                       onChange={(e) => setFormData({ ...formData, wam: e.target.value })}
                       placeholder="e.g., 85.5"
+                      className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                     />
                   </div>
                 </div>
@@ -386,15 +384,16 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
 
                 {/* Skills */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Skills & Technologies</label>
+                  <label className="block text-sm font-medium mb-2 text-white/70">Skills & Technologies</label>
                   <div className="flex gap-2 mb-3">
                     <Input
                       value={currentSkill}
                       onChange={(e) => setCurrentSkill(e.target.value)}
                       placeholder="Add a skill (e.g., Python, React, Machine Learning)"
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                      className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                     />
-                    <Button type="button" onClick={addSkill} variant="outline" size="icon">
+                    <Button type="button" onClick={addSkill} variant="outline" size="icon" className="bg-transparent border-white/20 text-white hover:bg-white/10">
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
@@ -405,20 +404,20 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                       <Badge 
                         key={index} 
                         variant="secondary" 
-                        className="flex items-center gap-1 px-3 py-1"
+                        className="flex items-center gap-1 px-3 py-1 bg-white/15 text-white/80 border border-white/20"
                       >
                         {skill}
                         <button
                           type="button"
                           onClick={() => removeSkill(skill)}
-                          className="ml-1 hover:text-destructive transition-colors"
+                          className="ml-1 hover:text-red-400 transition-colors"
                         >
                           <X className="w-3 h-3" />
                         </button>
                       </Badge>
                     ))}
                     {skills.length === 0 && (
-                      <p className="text-muted-foreground text-sm italic">
+                      <p className="text-white/60 text-sm italic">
                         No skills added yet. Start typing to add your first skill.
                       </p>
                     )}
@@ -427,15 +426,16 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
 
                 {/* Interests */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Interests & Project Types</label>
+                  <label className="block text-sm font-medium mb-2 text-white/70">Interests & Project Types</label>
                   <div className="flex gap-2 mb-3">
                     <Input
                       value={currentInterest}
                       onChange={(e) => setCurrentInterest(e.target.value)}
                       placeholder="Add an interest (e.g., AI, Web Development, IoT)"
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addInterest())}
+                      className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                     />
-                    <Button type="button" onClick={addInterest} variant="outline" size="icon">
+                    <Button type="button" onClick={addInterest} variant="outline" size="icon" className="bg-transparent border-white/20 text-white hover:bg-white/10">
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
@@ -446,20 +446,20 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                       <Badge 
                         key={index} 
                         variant="outline" 
-                        className="flex items-center gap-1 px-3 py-1"
+                        className="flex items-center gap-1 px-3 py-1 bg-white/15 text-white/80 border border-white/20"
                       >
                         {interest}
                         <button
                           type="button"
                           onClick={() => removeInterest(interest)}
-                          className="ml-1 hover:text-destructive transition-colors"
+                          className="ml-1 hover:text-red-400 transition-colors"
                         >
                           <X className="w-3 h-3" />
                         </button>
                       </Badge>
                     ))}
                     {interests.length === 0 && (
-                      <p className="text-muted-foreground text-sm italic">
+                      <p className="text-white/60 text-sm italic">
                         No interests added yet. Start typing to add your first interest.
                       </p>
                     )}
@@ -468,12 +468,12 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
 
                 {/* Lab Selection */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Lab</label>
+                  <label className="block text-sm font-medium mb-2 text-white/70">Lab</label>
                   <Select value={formData.lab} onValueChange={(value) => setFormData({ ...formData, lab: value })}>
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-xl border-white/15 bg-black/40 text-white focus-visible:ring-0">
                       <SelectValue placeholder="Select your lab" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="border border-white/10 bg-[#0b111a] text-white">
                       <SelectItem value="lab1">Lab 1</SelectItem>
                       <SelectItem value="lab2">Lab 2</SelectItem>
                       <SelectItem value="lab3">Lab 3</SelectItem>
@@ -484,24 +484,25 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
 
                 {/* Courses */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Completed Courses</label>
+                  <label className="block text-sm font-medium mb-2 text-white/70">Completed Courses</label>
                   <div className="relative mb-3">
                     <Input
                       value={courseSearch}
                       onChange={(e) => setCourseSearch(e.target.value)}
                       placeholder="Search for courses (e.g., COMP9444)"
+                      className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                     />
                     {courseSearch && filteredCourses.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                      <div className="absolute z-10 w-full mt-1 bg-[#0b111a] border border-white/10 rounded-md shadow-lg max-h-48 overflow-y-auto">
                         {filteredCourses.map((course) => (
                           <button
                             key={course.code}
                             type="button"
                             onClick={() => addCourse(course.code)}
-                            className="w-full text-left px-4 py-2 hover:bg-accent transition-colors"
+                            className="w-full text-left px-4 py-2 hover:bg-black/60 transition-colors text-white"
                           >
                             <div className="font-medium">{course.code}</div>
-                            <div className="text-sm text-muted-foreground">{course.name}</div>
+                            <div className="text-sm text-white/60">{course.name}</div>
                           </button>
                         ))}
                       </div>
@@ -516,14 +517,14 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                         <Badge 
                           key={index} 
                           variant="secondary" 
-                          className="flex items-center gap-1 px-3 py-1"
+                          className="flex items-center gap-1 px-3 py-1 bg-white/15 text-white/80 border border-white/20"
                         >
                           <span className="font-medium">{courseCode}</span>
                           <span className="text-xs">- {course?.name}</span>
                           <button
                             type="button"
                             onClick={() => removeCourse(courseCode)}
-                            className="ml-1 hover:text-destructive transition-colors"
+                            className="ml-1 hover:text-red-400 transition-colors"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -531,7 +532,7 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
                       );
                     })}
                     {courses.length === 0 && (
-                      <p className="text-muted-foreground text-sm italic">
+                      <p className="text-white/60 text-sm italic">
                         No courses added yet. Search and select courses you've completed.
                       </p>
                     )}
@@ -540,7 +541,7 @@ const StudentProfileForm = ({ onProfileCreated }: StudentProfileFormProps = {}) 
 
                 {/* Submit */}
                 <div className="flex gap-4">
-                  <Button type="submit" variant="gradient" className="flex-1" disabled={loading}>
+                  <Button type="submit" className="flex-1 bg-sky-500 text-white hover:bg-sky-400" disabled={loading}>
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
@@ -17,10 +18,11 @@ export const ApplicationManagement = () => {
   const [statusUpdate, setStatusUpdate] = useState({ status: '', note: '' });
   const { toast } = useToast();
   const [augmented, setAugmented] = useState<Record<string, { matchPercentage: number; matchedSkills: string[]; teamSize: number }>>({});
-  const [responses, setResponses] = useState<Record<string, { q1: string; q2: string }>>({});
+  const [responses, setResponses] = useState<Record<string, { q1: string; q2: string; subject_code?: string }>>({});
   const [teamNames, setTeamNames] = useState<Record<string, string>>({});
   const [teamDetails, setTeamDetails] = useState<Record<string, any[]>>({});
   const [openTeamForAppId, setOpenTeamForAppId] = useState<string | null>(null);
+  const [viewDetailDialog, setViewDetailDialog] = useState<string | null>(null);
   const [recommendations, setRecommendations] = useState<Record<string, {
     bestApplicationId: string | null;
     summary?: string | null;
@@ -129,11 +131,11 @@ export const ApplicationManagement = () => {
     if (ids.length === 0) return;
     const { data } = await supabase
       .from('application_responses' as any)
-      .select('application_id, q1, q2')
+      .select('application_id, q1, q2, subject_code')
       .in('application_id', ids);
-    const map: Record<string, { q1: string; q2: string }> = {};
+    const map: Record<string, { q1: string; q2: string; subject_code?: string }> = {};
     (data || []).forEach((row: any) => {
-      map[row.application_id] = { q1: row.q1 || '', q2: row.q2 || '' };
+      map[row.application_id] = { q1: row.q1 || '', q2: row.q2 || '', subject_code: row.subject_code || undefined };
     });
     setResponses(map);
   };
@@ -311,17 +313,55 @@ export const ApplicationManagement = () => {
   };
 
   if (loading) {
-    return <div>Loading applications...</div>;
+    return (
+      <div className="flex items-center justify-center py-12 text-white/60">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-400 border-t-transparent" />
+      </div>
+    );
   }
+
+  const pendingApplications = applications.filter(app => app.status === 'pending' || app.status === 'waitlisted');
+  const approvedApplications = applications.filter(app => app.status === 'approved');
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Application Management</h2>
+      <div className="mb-8 flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white">Application Management</h2>
       </div>
 
-      <div className="space-y-4">
-        {applications.map((application) => {
+      <Tabs defaultValue="pending" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 rounded-full border border-white/10 bg-black/30 p-1">
+          <TabsTrigger
+            value="pending"
+            className="gap-2 rounded-full text-white/70 transition-all data-[state=active]:bg-sky-300/90 data-[state=active]:text-black"
+          >
+            Pending Applications
+            {pendingApplications.length > 0 && (
+              <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs bg-amber-500/20 text-amber-200">
+                {pendingApplications.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger
+            value="approved"
+            className="gap-2 rounded-full text-white/70 transition-all data-[state=active]:bg-sky-300/90 data-[state=active]:text-black"
+          >
+            Approved Applications
+            {approvedApplications.length > 0 && (
+              <Badge variant="default" className="ml-1 h-5 px-1.5 text-xs bg-emerald-500/20 text-emerald-200">
+                {approvedApplications.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pending" className="space-y-4">
+          {pendingApplications.length === 0 ? (
+            <div className="rounded-lg border border-white/10 bg-black/70 py-12 text-center">
+              <p className="text-lg text-white/60">No pending applications</p>
+            </div>
+          ) : (
+            pendingApplications.map((application) => {
           const meta = teamApplicationMeta[application.project_id];
           const multipleTeamsForProject = (meta?.teamCount ?? 0) > 1;
           const isPrimaryTeamForProject = multipleTeamsForProject && meta?.firstTeamApplicationId === application.id;
@@ -336,14 +376,17 @@ export const ApplicationManagement = () => {
           const showEvaluating = isPrimaryTeamForProject && evaluatingProjectId === application.project_id;
 
           return (
-          <Card key={application.id} className={cn(isRecommended && "border-emerald-400/60 shadow-[0_0_0_1px_rgba(16,185,129,0.35)]")}>
+          <Card key={application.id} className={cn(
+            "rounded-3xl border border-white/10 bg-black/70 text-white/80 shadow-[0_25px_65px_-40px_rgba(56,189,248,0.45)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/50",
+            isRecommended && "border-emerald-400/60 shadow-[0_0_0_1px_rgba(16,185,129,0.35)]"
+          )}>
             <CardHeader>
-              <div className="flex justify-between items-start">
+              <div className="flex items-start justify-between">
                 <div>
-                  <CardTitle className="text-lg">
+                  <CardTitle className="text-lg text-white">
                     {application.projects?.title}
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-white/60">
                     Applicant: {application.applicant_type === 'team' 
                       ? (teamNames[application.applicant_id] || 'Team') 
                       : (individualProfiles[application.applicant_id]?.full_name || application.applicant_id)}
@@ -351,9 +394,14 @@ export const ApplicationManagement = () => {
                       ? ` (${individualProfiles[application.applicant_id]?.email})` 
                       : ''}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-white/60">
                     Type: {application.applicant_type}
                   </p>
+                  {application.applicant_type === 'team' && responses[application.id]?.subject_code && (
+                    <p className="text-sm text-white/60">
+                      Subject: <span className="font-medium text-sky-300">{responses[application.id]?.subject_code}</span>
+                    </p>
+                  )}
                   {recommendation && (
                     <div className="mt-3 space-y-2">
                       {isRecommended && (
@@ -362,29 +410,29 @@ export const ApplicationManagement = () => {
                         </Badge>
                       )}
                       {rankingPosition != null && rankingPosition > -1 && (
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-white/60">
                           AI Ranking: #{rankingPosition + 1}
                           {rankingEntry?.suitabilityScore != null && (
-                            <span className="ml-1 text-foreground font-semibold">
+                            <span className="ml-1 font-semibold text-white">
                               ({rankingEntry.suitabilityScore}/100)
                             </span>
                           )}
                         </div>
                       )}
                       {isRecommended && recommendation.summary && (
-                        <p className="text-sm text-muted-foreground leading-relaxed">
+                        <p className="text-sm leading-relaxed text-white/60">
                           {recommendation.summary}
                         </p>
                       )}
                       {!isRecommended && rankingEntry?.strengths && (
-                        <div className="bg-muted p-3 rounded-md text-xs leading-relaxed">
-                          <p className="font-semibold text-foreground">AI Notes</p>
-                          <p className="mt-1 text-muted-foreground">
-                            <span className="font-semibold text-foreground">Strengths:</span> {rankingEntry.strengths}
+                        <div className="rounded-md bg-black/60 p-3 text-xs leading-relaxed">
+                          <p className="font-semibold text-white">AI Notes</p>
+                          <p className="mt-1 text-white/60">
+                            <span className="font-semibold text-white">Strengths:</span> {rankingEntry.strengths}
                           </p>
                           {rankingEntry.concerns && (
-                            <p className="mt-1 text-muted-foreground">
-                              <span className="font-semibold text-foreground">Concerns:</span> {rankingEntry.concerns}
+                            <p className="mt-1 text-white/60">
+                              <span className="font-semibold text-white">Concerns:</span> {rankingEntry.concerns}
                             </p>
                           )}
                         </div>
@@ -393,7 +441,18 @@ export const ApplicationManagement = () => {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant={getStatusBadgeVariant(application.status)}>
+                  <Badge 
+                    variant={getStatusBadgeVariant(application.status)}
+                    className={
+                      application.status === 'approved' 
+                        ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-500/30'
+                        : application.status === 'rejected'
+                        ? 'bg-red-500/30 text-red-200 border border-red-500/30'
+                        : application.status === 'waitlisted'
+                        ? 'bg-amber-500/30 text-amber-300 border border-amber-500/30'
+                        : 'bg-transparent border-white/20 text-white/80'
+                    }
+                  >
                     {application.status}
                   </Badge>
                   <Dialog>
@@ -405,26 +464,27 @@ export const ApplicationManagement = () => {
                           setSelectedApplication(application);
                           setStatusUpdate({ status: application.status, note: application.admin_note || '' });
                         }}
+                        className="bg-transparent border-white/20 text-white hover:bg-white/10"
                       >
                         Update Status
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="border border-white/10 bg-[#0b111a] text-white">
                       <DialogHeader>
-                        <DialogTitle>Update Application Status</DialogTitle>
+                        <DialogTitle className="text-white">Update Application Status</DialogTitle>
                       </DialogHeader>
                       
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="status">Status</Label>
+                          <Label htmlFor="status" className="text-white/70">Status</Label>
                           <Select 
                             value={statusUpdate.status} 
                             onValueChange={(value) => setStatusUpdate(prev => ({ ...prev, status: value }))}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="rounded-xl border-white/15 bg-black/40 text-white focus-visible:ring-0">
                               <SelectValue placeholder="Select status" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="border border-white/10 bg-[#0b111a] text-white">
                               <SelectItem value="pending">Pending</SelectItem>
                               <SelectItem value="approved">Approved</SelectItem>
                               <SelectItem value="waitlisted">Waitlisted</SelectItem>
@@ -434,21 +494,22 @@ export const ApplicationManagement = () => {
                         </div>
 
                         <div>
-                          <Label htmlFor="note">Admin Note (Optional)</Label>
+                          <Label htmlFor="note" className="text-white/70">Admin Note (Optional)</Label>
                           <Textarea
                             id="note"
                             value={statusUpdate.note}
                             onChange={(e) => setStatusUpdate(prev => ({ ...prev, note: e.target.value }))}
                             placeholder="Add a note for the applicant..."
                             rows={3}
+                            className="rounded-xl border-white/15 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-0"
                           />
                         </div>
 
                         <div className="flex justify-end space-x-2">
-                          <Button variant="outline" onClick={() => setSelectedApplication(null)}>
+                          <Button variant="outline" onClick={() => setSelectedApplication(null)} className="border-white/20 text-white hover:bg-white/10">
                             Cancel
                           </Button>
-                          <Button onClick={handleStatusUpdate}>
+                          <Button onClick={handleStatusUpdate} className="bg-sky-500 text-white hover:bg-sky-400">
                             Update Status
                           </Button>
                         </div>
@@ -466,28 +527,28 @@ export const ApplicationManagement = () => {
                     }
                   }}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">View Team</Button>
+                      <Button variant="outline" size="sm" className="bg-transparent border-white/20 text-white hover:bg-white/10">View Team</Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="border border-white/10 bg-[#0b111a] text-white">
                       <DialogHeader>
-                        <DialogTitle>Team Members - {teamNames[application.applicant_id] || 'Team'}</DialogTitle>
+                        <DialogTitle className="text-white">Team Members - {teamNames[application.applicant_id] || 'Team'}</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-3">
                         {(teamDetails[application.id] || []).map((m: any) => (
-                          <div key={m.id} className="p-3 bg-muted rounded">
-                            <div className="font-medium">{m.profile?.full_name || m.user_id} {m.role === 'creator' && <span className="ml-2 text-xs px-2 py-0.5 bg-secondary rounded">Creator</span>}</div>
-                            <div className="text-sm text-muted-foreground">{m.profile?.email || ''}</div>
+                          <div key={m.id} className="rounded-lg bg-black/60 p-3">
+                            <div className="font-medium text-white">{m.profile?.full_name || m.user_id} {m.role === 'creator' && <span className="ml-2 rounded bg-white/15 px-2 py-0.5 text-xs text-white/80">Creator</span>}</div>
+                            <div className="text-sm text-white/60">{m.profile?.email || ''}</div>
                             {Array.isArray(m.skills) && m.skills.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-2">
+                              <div className="mt-2 flex flex-wrap gap-1">
                                 {m.skills.map((s: string) => (
-                                  <span key={s} className="text-xs px-2 py-0.5 bg-secondary rounded">{s}</span>
+                                  <span key={s} className="rounded bg-white/15 px-2 py-0.5 text-xs text-white/80">{s}</span>
                                 ))}
                               </div>
                             )}
                           </div>
                         ))}
                         {(teamDetails[application.id] || []).length === 0 && (
-                          <div className="text-sm text-muted-foreground">No members found.</div>
+                          <div className="text-sm text-white/60">No members found.</div>
                         )}
                       </div>
                     </DialogContent>
@@ -498,12 +559,13 @@ export const ApplicationManagement = () => {
                     variant="secondary"
                     size="sm"
                     onClick={() => handleRecommendTeam(application.project_id)}
+                    className="bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 border border-sky-500/30"
                   >
                     Let AI pick best team
                   </Button>
                 )}
                 {showEvaluating && (
-                  <Button variant="secondary" size="sm" disabled>
+                  <Button variant="secondary" size="sm" disabled className="bg-sky-500/20 text-sky-300 border border-sky-500/30">
                     Evaluating…
                   </Button>
                 )}
@@ -524,6 +586,7 @@ export const ApplicationManagement = () => {
                       fetchApplications();
                     }
                   }}
+                  className="bg-emerald-500 text-white hover:bg-emerald-400"
                 >
                   Approve
                 </Button>
@@ -544,63 +607,249 @@ export const ApplicationManagement = () => {
                       fetchApplications();
                     }
                   }}
+                  className="bg-red-500/30 text-red-200 hover:bg-red-500/40 border border-red-500/30"
                 >
                   Decline
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
                 <div>
-                  <span className="font-medium">Applied:</span> {new Date(application.created_at).toLocaleDateString()}
+                  <span className="font-medium text-white/70">Applied:</span> <span className="text-white/60">{new Date(application.created_at).toLocaleDateString()}</span>
                 </div>
                 <div>
-                  <span className="font-medium">Category:</span> {application.projects?.category}
+                  <span className="font-medium text-white/70">Category:</span> <span className="text-white/60">{application.projects?.category}</span>
                 </div>
                 <div>
-                  <span className="font-medium">Team Size:</span> {augmented[application.id]?.teamSize ?? (application.applicant_type === 'team' ? '—' : 1)}
+                  <span className="font-medium text-white/70">Team Size:</span> <span className="text-white/60">{augmented[application.id]?.teamSize ?? (application.applicant_type === 'team' ? '—' : 1)}</span>
                 </div>
               </div>
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-3 bg-muted rounded">
-                  <div className="text-xs text-muted-foreground">Skill Match</div>
-                  <div className="text-xl font-bold">{augmented[application.id]?.matchPercentage ?? 0}%</div>
+              <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="rounded-lg bg-black/60 p-3">
+                  <div className="text-xs text-white/55">Skill Match</div>
+                  <div className="text-xl font-bold text-white">{augmented[application.id]?.matchPercentage ?? 0}%</div>
                 </div>
-                <div className="p-3 bg-muted rounded">
-                  <div className="text-xs text-muted-foreground">Matched Skills</div>
-                  <div className="text-sm">{(augmented[application.id]?.matchedSkills || []).join(', ') || '—'}</div>
+                <div className="rounded-lg bg-black/60 p-3">
+                  <div className="text-xs text-white/55">Matched Skills</div>
+                  <div className="text-sm text-white/60">{(augmented[application.id]?.matchedSkills || []).join(', ') || '—'}</div>
                 </div>
               </div>
-              {(responses[application.id]?.q1 || responses[application.id]?.q2) && (
-                <div className="mt-3 p-3 bg-muted rounded">
-                  <div className="text-sm font-medium mb-2">Team Responses</div>
-                  {responses[application.id]?.q1 && (
-                    <div className="text-sm mb-2">
-                      <span className="font-medium">Q1:</span> {responses[application.id]?.q1}
+              {application.applicant_type === 'team' && (responses[application.id]?.q1 || responses[application.id]?.q2) && (
+                <div className="mt-3 space-y-3">
+                  <div className="rounded-lg border border-white/10 bg-black/60 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-medium text-white">Team Application Responses</div>
+                      {responses[application.id]?.subject_code && (
+                        <Badge variant="outline" className="border-white/20 bg-white/10 text-white/80 text-xs">
+                          {responses[application.id]?.subject_code}
+                        </Badge>
+                      )}
                     </div>
-                  )}
-                  {responses[application.id]?.q2 && (
-                    <div className="text-sm">
-                      <span className="font-medium">Q2:</span> {responses[application.id]?.q2}
-                    </div>
-                  )}
+                    {responses[application.id]?.q1 && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-white/70">Q1: Why is your team a good fit for this project?</p>
+                        <p className="text-sm text-white/80 whitespace-pre-wrap line-clamp-2">{responses[application.id]?.q1}</p>
+                      </div>
+                    )}
+                    {responses[application.id]?.q2 && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-white/70">Q2: Outline your proposed approach or plan</p>
+                        <p className="text-sm text-white/80 whitespace-pre-wrap line-clamp-2">{responses[application.id]?.q2}</p>
+                      </div>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setViewDetailDialog(application.id)}
+                      className="w-full bg-transparent border-white/20 text-white hover:bg-white/10"
+                    >
+                      View Full Details
+                    </Button>
+                  </div>
                 </div>
               )}
               {application.admin_note && (
-                <div className="mt-2 p-2 bg-muted rounded">
-                  <span className="font-medium">Admin Note:</span> {application.admin_note}
+                <div className="mt-2 rounded-lg bg-black/60 p-2">
+                  <span className="font-medium text-white">Admin Note:</span> <span className="text-white/60">{application.admin_note}</span>
                 </div>
               )}
             </CardContent>
           </Card>
-        )})}
-      </div>
+          );
+            })
+          )}
+        </TabsContent>
 
-      {applications.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">No applications found.</p>
-        </div>
-      )}
+        <TabsContent value="approved" className="space-y-4">
+          {approvedApplications.length === 0 ? (
+            <div className="rounded-lg border border-white/10 bg-black/70 py-12 text-center">
+              <p className="text-lg text-white/60">No approved applications</p>
+              <p className="mt-2 text-sm text-white/50">Approved applications will appear here and can be marked in the Marks tab</p>
+            </div>
+          ) : (
+            approvedApplications.map((application) => {
+              const meta = teamApplicationMeta[application.project_id];
+              const multipleTeamsForProject = (meta?.teamCount ?? 0) > 1;
+              const isPrimaryTeamForProject = multipleTeamsForProject && meta?.firstTeamApplicationId === application.id;
+              const recommendation = recommendations[application.project_id];
+              const rankingEntry = recommendation?.ranking?.find((entry) => entry.applicationId === application.id);
+              const rankingPosition = recommendation?.ranking?.findIndex((entry) => entry.applicationId === application.id);
+              const isRecommended = recommendation?.bestApplicationId === application.id;
+
+              return (
+                <Card key={application.id} className={cn(
+                  "rounded-3xl border border-white/10 bg-black/70 text-white/80 shadow-[0_25px_65px_-40px_rgba(56,189,248,0.45)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/50",
+                  isRecommended && "border-emerald-400/60 shadow-[0_0_0_1px_rgba(16,185,129,0.35)]"
+                )}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg text-white">
+                          {application.projects?.title}
+                        </CardTitle>
+                        <p className="text-sm text-white/60">
+                          Applicant: {application.applicant_type === 'team' 
+                            ? (teamNames[application.applicant_id] || 'Team') 
+                            : (individualProfiles[application.applicant_id]?.full_name || application.applicant_id)}
+                          {application.applicant_type === 'individual' && individualProfiles[application.applicant_id]?.email 
+                            ? ` (${individualProfiles[application.applicant_id]?.email})` 
+                            : ''}
+                        </p>
+                        <p className="text-sm text-white/60">
+                          Type: {application.applicant_type}
+                        </p>
+                        {application.applicant_type === 'team' && responses[application.id]?.subject_code && (
+                          <p className="text-sm text-white/60">
+                            Subject: <span className="font-medium text-sky-300">{responses[application.id]?.subject_code}</span>
+                          </p>
+                        )}
+                        <Badge className="mt-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          Approved
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="rounded-lg bg-black/60 p-3">
+                          <div className="text-xs text-white/55">Skill Match</div>
+                          <div className="text-xl font-bold text-white">{augmented[application.id]?.matchPercentage ?? 0}%</div>
+                        </div>
+                        <div className="rounded-lg bg-black/60 p-3">
+                          <div className="text-xs text-white/55">Matched Skills</div>
+                          <div className="text-sm text-white/60">{(augmented[application.id]?.matchedSkills || []).join(', ') || '—'}</div>
+                        </div>
+                      </div>
+                      {application.applicant_type === 'team' && (responses[application.id]?.q1 || responses[application.id]?.q2) && (
+                        <div className="mt-3 space-y-3">
+                          <div className="rounded-lg border border-white/10 bg-black/60 p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="text-sm font-medium text-white">Team Application Responses</div>
+                              {responses[application.id]?.subject_code && (
+                                <Badge variant="outline" className="border-white/20 bg-white/10 text-white/80 text-xs">
+                                  {responses[application.id]?.subject_code}
+                                </Badge>
+                              )}
+                            </div>
+                            {responses[application.id]?.q1 && (
+                              <div className="space-y-1">
+                                <p className="text-xs font-medium text-white/70">Q1: Why is your team a good fit for this project?</p>
+                                <p className="text-sm text-white/80 whitespace-pre-wrap line-clamp-2">{responses[application.id]?.q1}</p>
+                              </div>
+                            )}
+                            {responses[application.id]?.q2 && (
+                              <div className="space-y-1">
+                                <p className="text-xs font-medium text-white/70">Q2: Outline your proposed approach or plan</p>
+                                <p className="text-sm text-white/80 whitespace-pre-wrap line-clamp-2">{responses[application.id]?.q2}</p>
+                              </div>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setViewDetailDialog(application.id)}
+                              className="w-full bg-transparent border-white/20 text-white hover:bg-white/10"
+                            >
+                              View Full Details
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      <p className="text-sm text-white/50 italic">
+                        This application has been approved. You can mark this team in the Marks tab.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* View Detail Dialog */}
+      {viewDetailDialog && (() => {
+        const application = applications.find(app => app.id === viewDetailDialog);
+        const appResponses = responses[viewDetailDialog];
+        if (!application || !appResponses) return null;
+
+        return (
+          <Dialog open={!!viewDetailDialog} onOpenChange={(open) => !open && setViewDetailDialog(null)}>
+            <DialogContent className="border border-white/10 bg-[#0b111a] text-white max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-white">Team Application Details</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    {application.projects?.title || 'Unknown Project'}
+                  </h3>
+                  <p className="text-sm text-white/60">
+                    Team: {teamNames[application.applicant_id] || 'Unknown Team'}
+                  </p>
+                  {appResponses.subject_code && (
+                    <Badge variant="outline" className="mt-2 border-white/20 bg-white/10 text-white/80">
+                      {appResponses.subject_code}
+                    </Badge>
+                  )}
+                </div>
+
+                {appResponses.q1 && (
+                  <div className="space-y-2">
+                    <Label className="text-white/70 font-semibold">
+                      Why is your team a good fit for this project?
+                    </Label>
+                    <div className="rounded-lg border border-white/10 bg-black/60 p-4">
+                      <p className="text-white/80 whitespace-pre-wrap">{appResponses.q1}</p>
+                    </div>
+                  </div>
+                )}
+
+                {appResponses.q2 && (
+                  <div className="space-y-2">
+                    <Label className="text-white/70 font-semibold">
+                      Outline your proposed approach or plan
+                    </Label>
+                    <div className="rounded-lg border border-white/10 bg-black/60 p-4">
+                      <p className="text-white/80 whitespace-pre-wrap">{appResponses.q2}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => setViewDetailDialog(null)}
+                    className="bg-transparent border-white/20 text-white hover:bg-white/10"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>
   );
 };
