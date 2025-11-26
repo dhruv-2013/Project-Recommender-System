@@ -11,6 +11,7 @@ import { MyTeams } from "@/components/subject/MyTeams";
 import { TeamProjectRecommendations } from "@/components/subject/TeamProjectRecommendations";
 import { StudentAnnouncements } from "@/components/StudentAnnouncements";
 import { StudentMarks } from "@/components/StudentMarks";
+import { StudentSubmissions } from "@/components/StudentSubmissions";
 import { Badge } from "@/components/ui/badge";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 
@@ -191,7 +192,7 @@ export default function Subject() {
 
         <section className="mt-14 rounded-3xl border border-white/10 bg-black/40 p-8 backdrop-blur-xl">
           <Tabs defaultValue="partners" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-6 rounded-full border border-white/10 bg-black/30 p-1">
+            <TabsList className="grid w-full grid-cols-7 rounded-full border border-white/10 bg-black/30 p-1">
               <TabsTrigger value="partners" className="rounded-full text-white/70 data-[state=active]:bg-sky-300/90 data-[state=active]:text-black">
                 Partners
               </TabsTrigger>
@@ -203,6 +204,9 @@ export default function Subject() {
               </TabsTrigger>
               <TabsTrigger value="recommendations" className="rounded-full text-white/70 data-[state=active]:bg-sky-300/90 data-[state=active]:text-black">
                 Recommendations
+              </TabsTrigger>
+              <TabsTrigger value="submissions" className="rounded-full text-white/70 data-[state=active]:bg-sky-300/90 data-[state=active]:text-black">
+                Submissions
               </TabsTrigger>
               <TabsTrigger value="marks" className="rounded-full text-white/70 data-[state=active]:bg-sky-300/90 data-[state=active]:text-black">
                 Marks
@@ -250,6 +254,10 @@ export default function Subject() {
 
             <TabsContent value="recommendations" className="rounded-3xl border border-white/10 bg-black/60 p-6 backdrop-blur">
               <TeamProjectRecommendations subjectCode={subjectCode!} userId={user.id} />
+            </TabsContent>
+
+            <TabsContent value="submissions" className="rounded-3xl border border-white/10 bg-black/60 p-6 backdrop-blur">
+              <StudentSubmissions subjectCode={subjectCode!} userId={user.id} />
             </TabsContent>
 
             <TabsContent value="marks" className="rounded-3xl border border-white/10 bg-black/60 p-6 backdrop-blur">

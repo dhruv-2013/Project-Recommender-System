@@ -3,8 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Info, Download, FileText } from 'lucide-react';
 import { Json } from '@/integrations/supabase/types';
+import { toast } from 'sonner';
+
+interface Submission {
+  id: string;
+  file_path: string;
+  file_name: string;
+  file_size: number;
+  created_at: string;
+}
 
 interface Mark {
   id: string;
@@ -32,6 +42,7 @@ interface Mark {
 export const StudentMarks = () => {
   const [marks, setMarks] = useState<Mark[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submissionsMap, setSubmissionsMap] = useState<Record<string, Submission[]>>({});
 
   useEffect(() => {
     fetchReleasedMarks();
@@ -73,12 +84,80 @@ export const StudentMarks = () => {
         return;
       }
 
-      setMarks((marksData || []) as Mark[]);
+      const marksList = (marksData || []) as Mark[];
+      setMarks(marksList);
+
+      // Fetch submissions for all team-project combinations
+      if (marksList && marksList.length > 0) {
+        await fetchSubmissionsForMarks(marksList);
+      }
     } catch (error) {
       console.error('Error in fetchReleasedMarks:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchSubmissionsForMarks = async (marksData: Mark[]) => {
+    try {
+      const submissionsMap: Record<string, Submission[]> = {};
+
+      // Fetch submissions for each unique team-project combination
+      for (const mark of marksData) {
+        if (!mark.team_id || !mark.project_id) continue;
+
+        const key = `${mark.team_id}-${mark.project_id}`;
+        if (submissionsMap[key]) continue; // Already fetched
+
+        const { data: submissions, error } = await supabase
+          .from('submissions')
+          .select('id, file_path, file_name, file_size, created_at')
+          .eq('team_id', mark.team_id)
+          .eq('project_id', mark.project_id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching submissions:', error);
+          continue;
+        }
+
+        if (submissions && submissions.length > 0) {
+          submissionsMap[key] = submissions as Submission[];
+        }
+      }
+
+      setSubmissionsMap(submissionsMap);
+    } catch (error) {
+      console.error('Error fetching submissions:', error);
+    }
+  };
+
+  const handleDownloadSubmission = async (submission: Submission) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('submissions')
+        .createSignedUrl(submission.file_path, 3600); // 1 hour expiry
+
+      if (error) throw error;
+
+      if (data?.signedUrl) {
+        const link = document.createElement('a');
+        link.href = data.signedUrl;
+        link.download = submission.file_name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error: any) {
+      console.error('Error downloading submission:', error);
+      toast.error('Failed to download submission file');
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(2) + ' MB';
   };
 
   // New rubric format criteria
@@ -141,6 +220,8 @@ export const StudentMarks = () => {
       {marks.map((mark) => {
         const rubricData = parseRubricData(mark.rubric_scores, mark.rubric_weights);
         const finalMark = mark.final_mark || mark.team_mark || 0;
+        const submissionKey = mark.team_id && mark.project_id ? `${mark.team_id}-${mark.project_id}` : null;
+        const submissions = submissionKey ? submissionsMap[submissionKey] || [] : [];
 
         return (
           <Card
@@ -219,6 +300,39 @@ export const StudentMarks = () => {
                   <p className="mb-2 text-sm font-medium text-white/60">Feedback</p>
                   <div className="rounded-2xl border border-white/10 bg-black/50 p-4">
                     <p className="whitespace-pre-wrap text-sm text-white/70">{mark.feedback}</p>
+                  </div>
+                </div>
+              )}
+
+              {submissions.length > 0 && (
+                <div>
+                  <p className="mb-2 text-sm font-medium text-white/60">Submitted Files</p>
+                  <div className="space-y-2">
+                    {submissions.map((submission) => (
+                      <div
+                        key={submission.id}
+                        className="flex items-center justify-between rounded-xl border border-white/10 bg-black/50 p-3"
+                      >
+                        <div className="flex items-center gap-2 flex-1">
+                          <FileText className="h-4 w-4 text-sky-400" />
+                          <div>
+                            <p className="text-sm font-medium text-white">{submission.file_name}</p>
+                            <p className="text-xs text-white/50">
+                              {formatFileSize(submission.file_size)} • {new Date(submission.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownloadSubmission(submission)}
+                          className="gap-2 rounded-full border border-sky-400/60 bg-sky-500/20 px-4 text-sky-100 transition hover:bg-sky-500/50 hover:text-white focus-visible:ring-sky-300"
+                        >
+                          <Download className="mr-2 h-3 w-3" />
+                          Download
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

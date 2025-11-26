@@ -9,7 +9,8 @@ import { ProjectManagement } from '@/components/admin/ProjectManagement';
 import { ApplicationManagement } from '@/components/admin/ApplicationManagement';
 import { MarksManagement } from '@/components/admin/MarksManagement';
 import { AnnouncementManagement } from '@/components/admin/AnnouncementManagement';
-import { Briefcase, FileCheck, GraduationCap, Bell, LogOut, Users, Activity, Home } from 'lucide-react';
+import { SubmissionManagement } from '@/components/admin/SubmissionManagement';
+import { Briefcase, FileCheck, GraduationCap, Bell, LogOut, Users, Activity, Home, FileDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { GlowingEffect } from '@/components/ui/glowing-effect';
 
@@ -204,7 +205,7 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="projects" className="space-y-8">
-          <TabsList className="grid h-14 w-full grid-cols-4 rounded-full border border-white/10 bg-black/30 p-1">
+          <TabsList className="grid h-14 w-full grid-cols-5 rounded-full border border-white/10 bg-black/30 p-1">
             <TabsTrigger
               value="projects"
               className="gap-2 rounded-full text-white/70 transition-all data-[state=active]:bg-sky-300/90 data-[state=active]:text-black"
@@ -232,6 +233,13 @@ const Admin = () => {
               <span className="hidden sm:inline">Marks</span>
             </TabsTrigger>
             <TabsTrigger
+              value="submissions"
+              className="gap-2 rounded-full text-white/70 transition-all data-[state=active]:bg-sky-300/90 data-[state=active]:text-black"
+            >
+              <FileDown className="h-4 w-4" />
+              <span className="hidden sm:inline">Submissions</span>
+            </TabsTrigger>
+            <TabsTrigger
               value="announcements"
               className="gap-2 rounded-full text-white/70 transition-all data-[state=active]:bg-sky-300/90 data-[state=active]:text-black"
             >
@@ -250,6 +258,10 @@ const Admin = () => {
 
           <TabsContent value="marks" className="space-y-6">
             <MarksManagement />
+          </TabsContent>
+
+          <TabsContent value="submissions" className="space-y-6">
+            <SubmissionManagement />
           </TabsContent>
 
           <TabsContent value="announcements" className="space-y-6">
