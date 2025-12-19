@@ -3,7 +3,7 @@
 An AI-powered platform designed to **intelligently match students with academic or industry projects** based on their skills, interests, and background.  
 The goal is to streamline the project allocation process, enhance fairness, and promote meaningful collaborations through data-driven insights.
 
-**Live Preview:** [project-recommender-system.vercel.app](https://canvas-flex-creator-2wc3svubw-dhruv-2013s-projects.vercel.app)
+**Live Preview:** [project-recommender-system.vercel.app](https://canvas-flex-creator.vercel.app)
 
 ---
 
