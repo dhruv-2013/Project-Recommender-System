@@ -143,7 +143,7 @@ const Auth = () => {
             </div>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            ProjectMatch
+            TeamUp
           </h1>
           <p className="text-muted-foreground mt-2">
             AI-powered project recommendations for students
@@ -269,7 +269,7 @@ const Auth = () => {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-2 text-muted-foreground">
-                    Why ProjectMatch?
+                    Why TeamUp?
                   </span>
                 </div>
               </div>

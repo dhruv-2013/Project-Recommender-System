@@ -27,7 +27,7 @@ const Header = ({ user, profile, onSignOut }: HeaderProps = {}) => {
               <Brain className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold text-white">
-              ProjectMatch
+              TeamUp
             </span>
           </button>
 

@@ -1,4 +1,4 @@
-# ProjectMatch - AI-Powered Project Recommendation System
+# TeamUp - AI-Powered Project Recommendation System
 
 An AI-powered platform designed to **intelligently match students with academic or industry projects** based on their skills, interests, and background.  
 The goal is to streamline the project allocation process, enhance fairness, and promote meaningful collaborations through data-driven insights.

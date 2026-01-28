@@ -68,7 +68,7 @@ const RoleSelection = () => {
             <Brain className="h-10 w-10 text-primary animate-pulse" />
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Welcome to ProjectMatch
+            Welcome to TeamUp
           </h1>
           <p className="text-muted-foreground mt-4 text-lg">
             Choose your role to get started
